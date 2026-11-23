@@ -1,0 +1,12 @@
+Tsukuyomi-chan Official RVC Model bundled for MobMate
+
+This bundle includes a MobMate-format conversion of the free Tsukuyomi-chan Official RVC Model.
+
+License: つくよみちゃん公式RVCモデル利用規約
+License URL: https://tyc.rei-yumesaki.net/work/software/rvc/terms/
+Source: https://tyc.rei-yumesaki.net/work/software/rvc/
+
+When using this model, follow both the MobMate terms and the Tsukuyomi-chan Official RVC Model terms.
+Published converted audio requires credit for the source voice and the Tsukuyomi-chan Official RVC Model.
+Do not use it for political/religious/ideological advocacy, attacks or criticism of real persons/groups/products, impersonation, rights infringement, or publication that permits secondary reuse unless the official terms allow it.
+The model itself remains a free model; the product price is for MobMate application features, distribution, and maintenance.

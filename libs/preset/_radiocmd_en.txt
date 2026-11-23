@@ -1,0 +1,33 @@
+# _radiocmd.txt (en) - Radio chat preset (draft)
+# key format: p{page}.{slot} = "text"
+# page: 0..2, slot: 1..9
+
+p0.1 = "Got it."
+p0.2 = "Nice!"
+p0.3 = "Thanks."
+p0.4 = "Sorry."
+p0.5 = "Help me!"
+p0.6 = "No good."
+p0.7 = ""
+p0.8 = ""
+p0.9 = ""
+
+p1.1 = "Watch out!"
+p1.2 = "Enemy incoming!"
+p1.3 = "We can do this."
+p1.4 = "Run!"
+p1.5 = "Wait."
+p1.6 = "Follow me."
+p1.7 = ""
+p1.8 = ""
+p1.9 = ""
+
+p2.1 = "lol"
+p2.2 = "Can't talk now—I'm reading your calls."
+p2.3 = "Quiet a bit—I want to listen."
+p2.4 = "Switch it up."
+p2.5 = "Let's go with this."
+p2.6 = "GG, nice one!"
+p2.7 = ""
+p2.8 = ""
+p2.9 = ""

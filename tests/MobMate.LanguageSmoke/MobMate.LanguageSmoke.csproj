@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <!-- Reuse the existing friend-test boundary; no new test framework/packages. -->
+    <AssemblyName>MobMate.Core.Tests</AssemblyName>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../src/MobMate.App.Linux/PendingSpeechService.cs" Link="PendingSpeechService.cs" />
+    <Compile Include="../../src/MobMate.App.Linux/RealtimeLanguagePolicy.cs" Link="RealtimeLanguagePolicy.cs" />
+    <Compile Include="../../src/MobMate.App.Linux/LinuxMonitorLoopback.cs" Link="LinuxMonitorLoopback.cs" />
+    <ProjectReference Include="../../src/MobMate.Core/MobMate.Core.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <AssemblyName>MobMateLinux</AssemblyName>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <!-- No WPF / WinForms / WebView2 -->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MobMate.Core\MobMate.Core.csproj" />
+    <!-- ONNX Runtime for translation (native DLL excluded; placed in libs/) -->
+    <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="1.31.1">
+      <ExcludeAssets>native</ExcludeAssets>
+    </PackageReference>
+    <!-- SentencePiece tokenizer for m2m100 translation -->
+    <PackageReference Include="Microsoft.ML.Tokenizers" Version="2.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="..\..\libs\preset\_ui_*.txt" CopyToOutputDirectory="PreserveNewest" Link="libs\preset\%(Filename)%(Extension)" />
+    <Content Include="..\..\libs\preset\_radiocmd_*.txt" CopyToOutputDirectory="PreserveNewest" Link="libs\preset\%(Filename)%(Extension)" />
+    <Content Include="..\..\libs\preset\rich_tts_catalog.json" CopyToOutputDirectory="PreserveNewest" Link="libs\preset\rich_tts_catalog.json" />
+    <Content Include="..\..\libs\preset\piper_voice_catalog.json" CopyToOutputDirectory="PreserveNewest" Link="libs\preset\piper_voice_catalog.json" />
+    <Content Include="..\..\web\**\*" CopyToOutputDirectory="PreserveNewest" Link="web\%(RecursiveDir)%(Filename)%(Extension)" />
+    <Content Include="..\..\scripts\linux\open-subtitle-window.py" CopyToOutputDirectory="PreserveNewest" Link="scripts\linux\open-subtitle-window.py" />
+    <Content Include="..\..\scripts\linux\open-radio-chat-window.py" CopyToOutputDirectory="PreserveNewest" Link="scripts\linux\open-radio-chat-window.py" />
+    <Content Include="..\..\scripts\linux\radio-chat-trigger.sh" CopyToOutputDirectory="PreserveNewest" Link="scripts\linux\radio-chat-trigger.sh" />
+    <Content Include="..\..\scripts\linux\radio-chat-portal-hotkey.py" CopyToOutputDirectory="PreserveNewest" Link="scripts\linux\radio-chat-portal-hotkey.py" />
+    <Content Include="..\..\scripts\linux\radio-chat-shortcut-helper.sh" CopyToOutputDirectory="PreserveNewest" Link="scripts\linux\radio-chat-shortcut-helper.sh" />
+  </ItemGroup>
+
+</Project>

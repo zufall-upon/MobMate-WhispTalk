@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>MobMate Subtitle</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      width: 100%;
+      /* 透明エリア: カードだけが見える */
+      background: transparent;
+      overflow: hidden;
+      font-family: 'Segoe UI', 'Yu Gothic UI', 'Meiryo', sans-serif;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;   /* カードを下端に寄せる */
+      padding: 0 16px 14px;
+    }
+
+    /* ----------------------------------------
+       カードコンテナ: 横並び、左から右へ積む
+    ---------------------------------------- */
+    #caption-area {
+      display: flex;
+      flex-direction: column;
+      flex-wrap: nowrap;
+      gap: 8px;
+      align-items: flex-end;
+      max-height: 100%;
+      width: 100%;
+    }
+    body.obs-grid #caption-area {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, var(--card-max-w, 360px)));
+      gap: 8px;
+      justify-content: center;
+      align-content: end;
+      align-items: end;
+    }
+    body.obs-row #caption-area {
+      flex-direction: row;
+      justify-content: flex-end;
+      align-items: flex-end;
+    }
+    body.obs-latest #caption-area { align-items: center; }
+    body.obs-stack #caption-area { align-items: flex-end; }
+    body.obs-grid .c-card { width: 100%; }
+    body.obs-stack .c-card, body.obs-row .c-card, body.obs-latest .c-card { width: min(100%, var(--card-max-w, 420px)); }
+
+    /* ----------------------------------------
+       字幕カード
+    ---------------------------------------- */
+    .c-card {
+      flex-shrink: 0;
+      max-width: var(--card-max-w, 420px);
+      overflow-wrap: anywhere;
+      padding: 10px 16px 11px;
+      border-radius: 10px;
+      background: var(--card-bg, rgba(0, 0, 0, 0.70));
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      backdrop-filter: blur(10px) saturate(1.6);
+      -webkit-backdrop-filter: blur(10px) saturate(1.6);
+      animation: cardIn 0.38s cubic-bezier(0.22, 1, 0.36, 1) both;
+      transition: opacity 0.45s ease, transform 0.45s ease;
+    }
+
+    /* 古いカードは少し暗くする */
+    .c-card.aged { opacity: 0.55; }
+
+    /* 削除アニメーション */
+    .c-card.fading-out {
+      opacity: 0 !important;
+      transform: translateY(10px) !important;
+    }
+
+    @keyframes cardIn {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* 原文: translated mode uses smaller blue text, matching Windows SubtitleOverlayWindow */
+    .c-src {
+      margin-top: 5px;
+      font-size: calc(var(--cap-size, 22px) * 0.64);
+      color: #8ec8ff;
+      line-height: 1.3;
+      letter-spacing: 0.02em;
+      text-shadow: 0 1px 5px rgba(0, 0, 0, 0.9);
+    }
+
+    /* 翻訳文: large white primary text, matching Windows SubtitleOverlayWindow */
+    .c-tr {
+      font-size: var(--cap-size, 22px);
+      color: #fff;
+      line-height: 1.4;
+      letter-spacing: 0.02em;
+      text-shadow: 0 1px 8px rgba(0, 0, 0, 0.95);
+    }
+
+    /* 翻訳なし: 原文をprimary textとして表示 */
+    .c-card.no-tr .c-src {
+      margin-top: 0;
+      font-size: var(--cap-size, 22px);
+      color: #fff;
+      line-height: 1.4;
+      text-shadow: 0 1px 8px rgba(0, 0, 0, 0.95);
+    }
+
+    /* エンジン名 */
+    .c-eng {
+      margin-top: 4px;
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.18);
+      text-align: right;
+    }
+
+    /* ----------------------------------------
+       ツールバー: ホバーで表示
+    ---------------------------------------- */
+    #toolbar {
+      position: fixed;
+      top: 6px;
+      right: 8px;
+      display: flex;
+      gap: 5px;
+      opacity: 0;
+      transition: opacity 0.2s;
+      z-index: 100;
+    }
+    body:hover #toolbar { opacity: 1; }
+
+    #toolbar button {
+      background: rgba(0, 0, 0, 0.60);
+      color: #ccc;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 5px;
+      padding: 3px 11px;
+      cursor: pointer;
+      font-size: 12px;
+      line-height: 1.4;
+      transition: background 0.15s;
+    }
+    #toolbar button:hover { background: rgba(60,60,60,0.85); color: #fff; }
+
+    /* ----------------------------------------
+       設定パネル
+    ---------------------------------------- */
+    #settings {
+      position: fixed;
+      top: 36px;
+      right: 8px;
+      width: 220px;
+      background: rgba(14, 14, 18, 0.97);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 10px;
+      padding: 16px;
+      display: none;
+      z-index: 200;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      box-shadow: 0 8px 40px rgba(0, 0, 0, 0.7);
+    }
+    #settings.open { display: block; }
+
+    .s-title {
+      font-size: 11px;
+      color: #666;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .s-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .s-row label {
+      font-size: 12px;
+      color: #999;
+    }
+    .s-row select {
+      background: rgba(255, 255, 255, 0.08);
+      color: #eee;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 4px;
+      padding: 3px 8px;
+      font-size: 12px;
+      cursor: pointer;
+      outline: none;
+    }
+    .s-row select:hover { border-color: rgba(255,255,255,0.3); }
+
+    .s-close {
+      margin-top: 12px;
+      text-align: right;
+    }
+    .s-close button {
+      background: rgba(255,255,255,0.07);
+      color: #aaa;
+      border: 1px solid rgba(255,255,255,0.13);
+      border-radius: 4px;
+      padding: 3px 14px;
+      cursor: pointer;
+      font-size: 11px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ツールバー (ホバーで出現) -->
+  <div id="toolbar">
+    <button title="設定" onclick="toggleSettings()">⚙</button>
+    <button title="クリア" onclick="clearCaptions()">✕</button>
+    <button id="btn-close-window" title="ウィンドウを閉じる" onclick="window.close()" style="display:none">✖</button>
+  </div>
+
+  <!-- 設定パネル -->
+  <div id="settings">
+    <div class="s-title">字幕設定</div>
+
+    <div class="s-row">
+      <label>文字サイズ</label>
+      <select id="cfg-size" onchange="saveSettings()">
+        <option value="16px">S (16)</option>
+        <option value="20px">M (20)</option>
+        <option value="24px" selected>L (24)</option>
+        <option value="30px">XL (30)</option>
+        <option value="38px">XXL (38)</option>
+      </select>
+    </div>
+
+    <div class="s-row">
+      <label>カード背景</label>
+      <select id="cfg-bg" onchange="saveSettings()">
+        <option value="rgba(0,0,0,0.70)">ダーク</option>
+        <option value="rgba(0,10,48,0.78)">ブルー</option>
+        <option value="rgba(36,10,0,0.78)">ブラウン</option>
+        <option value="rgba(0,30,10,0.78)">グリーン</option>
+      </select>
+    </div>
+
+    <div class="s-row">
+      <label>最大枚数</label>
+      <select id="cfg-max" onchange="saveSettings()">
+        <option value="3">3</option>
+        <option value="5" selected>5</option>
+        <option value="7">7</option>
+        <option value="10">10</option>
+      </select>
+    </div>
+
+    <div class="s-row">
+      <label>カード幅 (px)</label>
+      <select id="cfg-maxw" onchange="saveSettings()">
+        <option value="260px">260</option>
+        <option value="340px" selected>340</option>
+        <option value="440px">440</option>
+        <option value="560px">560</option>
+      </select>
+    </div>
+
+    <div class="s-close">
+      <button onclick="toggleSettings()">閉じる</button>
+    </div>
+  </div>
+
+  <!-- 字幕エリア -->
+  <div id="caption-area"></div>
+
+  <script>
+    /* ---- 状態 ---- */
+      let lastUpdateMs = 0;
+      let cards  = [];   // { id, src, tr, eng }
+      let nextId = 0;
+      let maxCards = 5;
+      let cardTtlMs = 12000;
+
+    /* ---- OBS mode (?mode=obs) ---- */
+    const OBS_MODE = new URLSearchParams(location.search).get('mode') === 'obs';
+    const OBS_PARAMS = new URLSearchParams(location.search);
+
+    /* ---- GTK window mode (?window=1) ---- */
+    const GTK_MODE = new URLSearchParams(location.search).get('window') === '1';
+
+    function applyHearingConfigToObs(cfg) {
+      if (!cfg) return;
+
+      const fontSize = parseInt(cfg.overlayFontSize, 10);
+      if (fontSize >= 8)
+        document.documentElement.style.setProperty('--cap-size', fontSize + 'px');
+
+      const history = parseInt(cfg.overlayHistory, 10);
+      if (history >= 1) {
+        const requestedMax = parseInt(OBS_PARAMS.get('max'), 10);
+        maxCards = requestedMax >= 1 ? requestedMax : history;
+        trimAndRender();
+      }
+
+      const keepSeconds = parseInt(cfg.overlayDoneKeepSeconds, 10);
+      if (keepSeconds >= 2) cardTtlMs = keepSeconds * 1000;
+
+      // Background + opacity (WebUI settings → card background color)
+      const BG_RGB = { blue:[9,36,70], green:[16,69,53], gray:[34,38,40], red:[69,18,24] };
+      const rgb = BG_RGB[cfg.overlayBackground] || [0,0,0];
+      const alpha = ((cfg.overlayOpacity ?? 72) / 100).toFixed(2);
+      document.documentElement.style.setProperty('--card-bg', `rgba(${rgb[0]},${rgb[1]},${rgb[2]},${alpha})`);
+
+      // Flow direction
+      const FLOW_CLASS = { horizontalRight:'row', horizontalLeft:'row', verticalUp:'stack', verticalDown:'stack' };
+      const newFlow = 'obs-' + (FLOW_CLASS[cfg.overlayFlow] || 'stack');
+      ['obs-stack','obs-row','obs-grid','obs-latest'].forEach(c => document.body.classList.remove(c));
+      document.body.classList.add(newFlow);
+    }
+
+    function pollHearingConfigForObs() {
+      fetch('/api/hearing/config')
+        .then(r => r.json())
+        .then(applyHearingConfigToObs)
+        .catch(() => {});
+    }
+
+    /* ---- 設定ロード ---- */
+    function loadSettings() {
+      const size = localStorage.getItem('sub.size') || '24px';
+      const bg   = localStorage.getItem('sub.bg')   || 'rgba(0,0,0,0.70)';
+      const maxw = localStorage.getItem('sub.maxw')  || '340px';
+      maxCards   = parseInt(localStorage.getItem('sub.max') || '5', 10);
+      if (OBS_MODE) {
+        const layout = OBS_PARAMS.get('layout') || 'stack';
+        const normalizedLayout = layout === 'row' || layout === 'grid' || layout === 'latest' ? layout : 'stack';
+        document.body.classList.add('obs-' + normalizedLayout);
+        const requestedMax = parseInt(OBS_PARAMS.get('max'), 10);
+        if (requestedMax >= 1) maxCards = requestedMax;
+        if (normalizedLayout === 'latest') maxCards = 1;
+        const requestedMaxw = OBS_PARAMS.get('maxw');
+        if (/^\d{2,4}px$/.test(requestedMaxw || '')) {
+          applyCssVars(size, bg, requestedMaxw);
+          return;
+        }
+      }
+
+      setEl('cfg-size', size);
+      setEl('cfg-bg',   bg);
+      setEl('cfg-max',  String(maxCards));
+      setEl('cfg-maxw', maxw);
+      applyCssVars(size, bg, maxw);
+    }
+
+    function saveSettings() {
+      const size = document.getElementById('cfg-size').value;
+      const bg   = document.getElementById('cfg-bg').value;
+      const maxw = document.getElementById('cfg-maxw').value;
+      maxCards   = parseInt(document.getElementById('cfg-max').value, 10);
+
+      localStorage.setItem('sub.size', size);
+      localStorage.setItem('sub.bg',   bg);
+      localStorage.setItem('sub.maxw', maxw);
+      localStorage.setItem('sub.max',  String(maxCards));
+      applyCssVars(size, bg, maxw);
+      trimAndRender();
+    }
+
+    function applyCssVars(size, bg, maxw) {
+      const r = document.documentElement.style;
+      r.setProperty('--cap-size',    size);
+      r.setProperty('--card-bg',     bg);
+      r.setProperty('--card-max-w',  maxw);
+    }
+
+    function setEl(id, val) {
+      const el = document.getElementById(id);
+      if (el) el.value = val;
+    }
+
+    function toggleSettings() {
+      document.getElementById('settings').classList.toggle('open');
+    }
+
+    /* ---- GTK window height notification ---- */
+    function notifyWindowSize() {
+      if (!GTK_MODE) return;
+      // body overflow is released in GTK_MODE, so body.scrollHeight = actual content height.
+      setTimeout(() => {
+        const h = document.body.scrollHeight;
+        if (h > 0) document.title = 'resize:' + h;
+        // h == 0: no content yet, keep current size
+      }, 80);
+    }
+
+    function clearCaptions() {
+      cards = [];
+      document.getElementById('caption-area').innerHTML = '';
+      notifyWindowSize();
+    }
+
+    /* ---- カード追加 ---- */
+    function addCard(src, tr, eng) {
+      const card = { id: nextId++, src, tr, eng };
+      cards.push(card);
+      appendCardEl(card, true);   // 新カードをアニメーション付きで追加
+      if (cardTtlMs > 0) setTimeout(() => removeCardById(card.id), cardTtlMs);
+
+      trimExcessCards();
+      updateAgedClass();
+    }
+
+    function appendCardEl(card, animate) {
+      const area = document.getElementById('caption-area');
+      const el = document.createElement('div');
+      el.className = card.tr ? 'c-card' : 'c-card no-tr';
+      el.id = 'card-' + card.id;
+      if (!animate) el.style.animation = 'none';
+      el.innerHTML = buildHTML(card);
+      area.appendChild(el);
+    }
+
+    function removeOldestCard() {
+      const oldest = cards[0];
+      if (!oldest) return;
+      removeCardById(oldest.id);
+    }
+
+    function removeCardById(id) {
+      const idx = cards.findIndex(c => c.id === id);
+      if (idx < 0) return;
+      cards.splice(idx, 1);
+      const el = document.getElementById('card-' + id);
+      if (el) {
+        el.classList.add('fading-out');
+        setTimeout(() => {
+          el.remove();
+          updateAgedClass();
+        }, 460);
+      } else {
+        updateAgedClass();
+      }
+    }
+
+    /* 最新カード以外を aged (薄く) にする */
+    function updateAgedClass() {
+      const area = document.getElementById('caption-area');
+      const cardEls = area.querySelectorAll('.c-card:not(.fading-out)');
+      cardEls.forEach((el, i) => {
+        const isLast = i === cardEls.length - 1;
+        el.classList.toggle('aged', !isLast);
+      });
+      notifyWindowSize();
+    }
+
+    function trimAndRender() {
+      // maxCards 変更後に余分を除去
+      trimExcessCards();
+      updateAgedClass();
+    }
+
+    function trimExcessCards() {
+      while (cards.length > maxCards) removeOldestCard();
+    }
+
+    function buildHTML(c) {
+      let h = '';
+      if (c.tr)  h += '<div class="c-tr">'  + esc(c.tr)  + '</div>';
+      h += '<div class="c-src">' + esc(c.src) + '</div>';
+      if (c.eng) h += '<div class="c-eng">' + esc(c.eng) + '</div>';
+      return h;
+    }
+
+    function esc(s) {
+      return String(s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+    }
+
+    /* ---- ポーリング ---- */
+    function poll() {
+      fetch('/api/hearing/status')
+        .then(r => r.json())
+        .then(st => {
+          if (st.updatedAtMs > lastUpdateMs && st.sourceText) {
+            lastUpdateMs = st.updatedAtMs;
+            const last = cards[cards.length - 1];
+            if (!last || last.src !== st.sourceText) {
+              addCard(
+                st.sourceText,
+                st.translatedText  || '',
+                st.selectedEngine  || ''
+              );
+            }
+          }
+        })
+        .catch(() => {});
+    }
+
+    /* ---- 初期化 ---- */
+    loadSettings();
+    if (OBS_MODE) {
+      document.getElementById('toolbar').style.display = 'none';
+    }
+    if (GTK_MODE) {
+      // GTK window: hide toolbar and settings panel (configured via WebUI)
+      const tb = document.getElementById('toolbar');
+      const sp = document.getElementById('settings');
+      if (tb) tb.style.display = 'none';
+      if (sp) sp.style.display = 'none';
+
+      // Release overflow constraints so scrollHeight reflects actual content height.
+      // Without this, body overflow:hidden clips cards above and scrollHeight is capped
+      // at the window height, causing an infinite shrink loop.
+      document.documentElement.style.overflow = 'visible';
+      document.documentElement.style.height = 'auto';
+      document.body.style.overflow = 'visible';
+      document.body.style.height = 'auto';
+      document.body.style.minHeight = '0';
+      // Show cards top-to-bottom instead of bottom-aligned (window resizes to fit)
+      document.body.style.justifyContent = 'flex-start';
+      document.body.style.paddingTop = '8px';
+      document.body.style.paddingBottom = '8px';
+    }
+    if (OBS_MODE || GTK_MODE) {
+      pollHearingConfigForObs();
+      setInterval(pollHearingConfigForObs, 5000);
+    }
+    const timer = setInterval(poll, 600);
+    window.addEventListener('beforeunload', () => clearInterval(timer));
+  </script>
+</body>
+</html>

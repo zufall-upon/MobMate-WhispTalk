@@ -1,0 +1,28 @@
+[
+  {
+    "id": "tsukuyomi-rvc",
+    "displayName": "つくよみちゃん RVC (bundled)",
+    "engine": "rvc_onnx",
+    "downloadUrl": "",
+    "sizeBytes": 0,
+    "sha256": "",
+    "license": "つくよみちゃん公式RVCモデル利用規約",
+    "licenseUrl": "https://tyc.rei-yumesaki.net/work/software/rvc/terms/",
+    "sourcePageUrl": "https://tyc.rei-yumesaki.net/work/software/rvc/",
+    "riskNotice": "This bundle includes a MobMate-format conversion of the free Tsukuyomi-chan Official RVC Model (CV: Rei Yumesaki). The model part inherits the Tsukuyomi-chan Official RVC Model terms. When using this model, follow both the MobMate terms and the Tsukuyomi-chan Official RVC Model terms. Credit the source voice and the Tsukuyomi-chan Official RVC Model when publishing converted audio. Do not use it for political/religious/ideological advocacy, attacks or criticism of real persons/groups/products, impersonation, rights infringement, or publication that permits secondary reuse unless the official terms allow it. The model itself remains a free model; the product price is for MobMate application features, distribution, and maintenance.",
+    "requiresUserAgreement": true
+  },
+  {
+    "id": "seedvc-ncnn-v1-poc",
+    "displayName": "Seed-VC ncnn PoC v1",
+    "engine": "seedvc_ncnn",
+    "downloadUrl": "https://github.com/zufall-upon/MobMate/releases/download/v2-sv-model2606/seedvc-ncnn-v1-poc.zip",
+    "sizeBytes": 815339321,
+    "sha256": "",
+    "license": "GPL-3.0 (model weights)",
+    "licenseUrl": "https://github.com/zufall-upon/MobMate/releases/tag/v2-sv-model2606",
+    "sourcePageUrl": "https://github.com/zufall-upon/MobMate/releases/tag/v2-sv-model2606",
+    "riskNotice": "This Seed-VC ncnn voice conversion model contains weights derived from GPL-3.0 licensed Seed-VC, Apache-2.0 HuBERT, and MIT BigVGAN. Review the license terms and use at your own responsibility.",
+    "requiresUserAgreement": true
+  }
+]

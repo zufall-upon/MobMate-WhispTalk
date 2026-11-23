@@ -1,0 +1,53 @@
+<Project>
+  <!--
+    Shared build variables for MobMateV2.
+    Override secrets/local-only values in ignored Directory.Build.local.props.
+
+    Example Directory.Build.local.props:
+    <Project>
+      <PropertyGroup>
+        <MobMateSecretKey>local-secret-here</MobMateSecretKey>
+      </PropertyGroup>
+    </Project>
+  -->
+  <PropertyGroup>
+    <MobMateAppVersion>2.3.18</MobMateAppVersion>
+    <MobMateBuildChannel>debug</MobMateBuildChannel>
+    <MobMateDistributionChannel>development</MobMateDistributionChannel>
+    <MobMateIsDemo>false</MobMateIsDemo>
+    <MobMateSteamVulkanDlcAppId>4268150</MobMateSteamVulkanDlcAppId>
+    <MobMateSteamNewVulkanDlcAppId>4967740</MobMateSteamNewVulkanDlcAppId>
+    <MobMateSteamSupporterDlcAppId>4967730</MobMateSteamSupporterDlcAppId>
+    <MobMateSteamLegacyDlcAppId>4268150</MobMateSteamLegacyDlcAppId>
+    <MobMateCommitSha>unknown</MobMateCommitSha>
+    <MobMateBuildTimeUtc>unknown</MobMateBuildTimeUtc>
+    <MobMateSecretKey></MobMateSecretKey>
+  </PropertyGroup>
+
+  <Import Project="Directory.Build.local.props" Condition="Exists('Directory.Build.local.props')" />
+
+  <Target Name="GenerateMobMateBuildInfo" BeforeTargets="BeforeCompile">
+    <ItemGroup>
+      <MobMateBuildInfoLines Include="// &lt;auto-generated /&gt;" />
+      <MobMateBuildInfoLines Include="namespace MobMate.Core%3B" />
+      <MobMateBuildInfoLines Include="internal static class BuildInfo" />
+      <MobMateBuildInfoLines Include="{" />
+      <MobMateBuildInfoLines Include="    public const string AppVersion = &quot;$(MobMateAppVersion)&quot;%3B" />
+      <MobMateBuildInfoLines Include="    public const string BuildChannel = &quot;$(MobMateBuildChannel)&quot;%3B" />
+      <MobMateBuildInfoLines Include="    public const string DistributionChannel = &quot;$(MobMateDistributionChannel)&quot;%3B" />
+      <MobMateBuildInfoLines Include="    public const bool IsDemo = $(MobMateIsDemo)%3B" />
+      <MobMateBuildInfoLines Include="    public const int SteamVulkanDlcAppId = $(MobMateSteamVulkanDlcAppId)%3B" />
+      <MobMateBuildInfoLines Include="    public const int SteamNewVulkanDlcAppId = $(MobMateSteamNewVulkanDlcAppId)%3B" />
+      <MobMateBuildInfoLines Include="    public const int SteamSupporterDlcAppId = $(MobMateSteamSupporterDlcAppId)%3B" />
+      <MobMateBuildInfoLines Include="    public const int SteamLegacyDlcAppId = $(MobMateSteamLegacyDlcAppId)%3B" />
+      <MobMateBuildInfoLines Include="    public const string CommitSha = &quot;$(MobMateCommitSha)&quot;%3B" />
+      <MobMateBuildInfoLines Include="    public const string BuildTimeUtc = &quot;$(MobMateBuildTimeUtc)&quot;%3B" />
+      <MobMateBuildInfoLines Include="    public const string SecretKey = &quot;$(MobMateSecretKey)&quot;%3B" />
+      <MobMateBuildInfoLines Include="}" />
+    </ItemGroup>
+    <WriteLinesToFile File="$(IntermediateOutputPath)MobMate.BuildInfo.g.cs" Lines="@(MobMateBuildInfoLines)" Overwrite="true" />
+    <ItemGroup>
+      <Compile Include="$(IntermediateOutputPath)MobMate.BuildInfo.g.cs" />
+    </ItemGroup>
+  </Target>
+</Project>

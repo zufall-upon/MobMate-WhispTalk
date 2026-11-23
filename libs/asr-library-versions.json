@@ -1,0 +1,31 @@
+{
+  "whisper": {
+    "version": "1.9.5",
+    "revision": "d1be6fde11ac6e0407606b4e42fe72d34add8037",
+    "source": "https://github.com/ggml-org/whisper.cpp",
+    "sourceArchiveSha256": "645445da884df6dbd52b30f82d7be7c01d1767c938714e477e786b88d529e9f4",
+    "ggmlVersion": "0.26.0",
+    "note": "The b5454 release is marked prerelease; it is not treated as a stable Vulkan binary."
+  },
+  "moonshine": {
+    "version": "0.1.6",
+    "revision": "d8d8fa29d05ca67441a7719e70099f9f48917a93",
+    "source": "https://github.com/moonshine-ai/moonshine",
+    "sourceArchiveSha256": "857f04ed504d24e5b3fff4a0ce7066d57429a30d54714d39a587aa15e950ff30",
+    "windowsWheelSha256": "29a54f9249d41735db62b1f97272905cf114554f293c166f0f4f81655a4a2cfc"
+  },
+  "sherpaOnnx": {
+    "version": "2.0.1",
+    "revision": "af2d8d81dbfa61c4cea4c568da78f3982edca005",
+    "source": "https://github.com/k2-fsa/sherpa-onnx",
+    "sourceArchiveSha256": "afcafe3c34bc2f15a363ad791fa1644a69bf0977a58c1b4f617468976c2faeb5"
+  },
+  "onnxRuntime": {
+    "version": "1.31.1",
+    "source": "https://www.nuget.org/packages/Microsoft.ML.OnnxRuntime/1.31.1",
+    "nugetSha256": "6871ccbc97f3d5bdb4095a1dcec33aa78d56f6ed8de5980ef5fa1d9f2e7c679a",
+    "headers": "NuGet build/native/include; CRLF normalized to LF",
+    "cHeaderSha256": "43d584f596ef66820421317df32a79a95fc1d39ee46cb3971a870c08d8ba4baa"
+  },
+  "linuxCandidateBuilder": "scripts/linux/prepare-asr-runtime.sh"
+}

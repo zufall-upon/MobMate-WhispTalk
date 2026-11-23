@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>MobMateLinux</AssemblyName>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(RuntimeIdentifier)' == 'win-x64'">
+    <OutputType>WinExe</OutputType>
+    <AssemblyName>MobMateLauncher</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.0" />
+    <Compile Include="..\MobMate.Core\SteamLaunchContext.cs" Link="SteamLaunchContext.cs" />
+    <Compile Include="..\MobMate.Core\SteamDlcProbe.cs" Link="SteamDlcProbe.cs" />
+  </ItemGroup>
+
+  <Target Name="ValidateReleaseEntitlementSecret" BeforeTargets="BeforeCompile"
+          Condition="'$(Configuration)' == 'Release' and '$(MobMateSecretKey)' == ''">
+    <Error Text="Release launcher requires MobMateSecretKey from Directory.Build.local.props or an MSBuild property." />
+  </Target>
+</Project>

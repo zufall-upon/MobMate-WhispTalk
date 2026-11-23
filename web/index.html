@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MobMate</title>
+  <style>
+    * { box-sizing:border-box; margin:0; padding:0; }
+    body { min-height:100vh; background:#25292a; color:#edf2f2; font-family:"Segoe UI",Meiryo,sans-serif; }
+    button, select, textarea, input { font:inherit; }
+    button { cursor:pointer; border:1px solid #5b6466; background:#43494a; color:#f5f7f7; }
+    select, textarea, input { width:100%; border:1px solid #5c6466; border-radius:3px; background:#444a4b; color:#f4f7f7; padding:0.45rem; }
+    textarea { min-height:4.5rem; resize:vertical; }
+    .app { width:min(620px,100vw); min-height:100vh; margin:0 auto; background:#3b4041; border-left:1px solid #1d2021; border-right:1px solid #1d2021; }
+    .topbar { position:fixed; right:0.65rem; top:0.5rem; z-index:6; padding:0; }
+    .topbar .app-icon, .topbar h1 { display:none; }
+    .app-icon { width:1.1rem; height:1.1rem; border-radius:4px; background:#d8dddd; color:#333; display:grid; place-items:center; font-size:0.75rem; font-weight:700; }
+    h1 { font-size:1.05rem; font-weight:700; letter-spacing:0.02em; flex:1; }
+    .top-btn { min-width:1.8rem; height:1.75rem; padding:0 0.4rem; }
+    .close-btn { background:#d9435b; border-color:#e15b70; font-size:1.2rem; line-height:1; }
+    .subbar { padding:0 0.75rem 0.45rem; color:#d8dfdf; font-size:0.9rem; }
+    .subbar .warn { color:#ffd23f; font-weight:700; }
+    .subbar .link { color:#54c7ff; }
+    .content { padding:0 0.55rem 0.55rem; }
+    .panel { border:1px solid #565c5d; background:#424748; margin-bottom:0.55rem; }
+    .guide { padding:0.5em 0.75rem; color:#dce4e4; font-size:0.88rem; border-bottom:1px solid #565c5d; }
+    .meter-row { display:grid; grid-template-columns:1fr 9.5rem; gap:0.6rem; padding:0.55rem; align-items:center; }
+    .meter { height:2.35rem; border:1px solid #71797a; background:#1f2425; position:relative; overflow:hidden; }
+    .meter::before { content:""; position:absolute; inset:0; background:repeating-linear-gradient(90deg, transparent 0 13%, #596163 13% calc(13% + 1px)); opacity:.75; }
+    .meter::after { content:""; position:absolute; left:0; top:50%; width:100%; height:1px; background:#76dad4; opacity:.65; }
+    .meter-fill { position:absolute; left:0; top:0; bottom:0; width:0%; background:#787878; opacity:.95; }
+    .meter-peak { position:absolute; top:0; bottom:0; width:2px; background:rgba(255,255,255,0.7); display:none; pointer-events:none; }
+    .meter-label { position:absolute; bottom:0.15rem; font-size:0.68rem; color:#d9dddd; z-index:1; }
+    .meter-label.left { left:0.25rem; } .meter-label.right { right:0.25rem; }
+    .primary-btn { height:2.6rem; border:0; background:#35af99; color:#fff; font-weight:800; font-size:1rem; }
+    .stop-btn { background:#7c4b53; }
+    .tabs { display:grid; grid-template-columns:1.5fr repeat(3,1fr); gap:0.35rem; padding:0 0.55rem 0.45rem; overflow:hidden; }
+    .tab { min-height:2.35rem; border:1px solid #5b6263; border-radius:5px 5px 0 0; background:#4b5152; color:#bdc7c7; padding:0.25em 0.45rem; font-size:0.82rem; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+    .tab.active { background:#687071; color:#fff; font-weight:700; }
+    .tab.partial { color:#54c7ff; }
+    .progress { height:0.35rem; margin:0 0.75rem 0.5rem; border-radius:999px; background:#606768; overflow:hidden; }
+    .progress > div { height:100%; width:0%; background:#94a4a6; }
+    .accordion { border:1px solid #555b5c; background:#404546; margin:0.5rem 0; }
+    .acc-head { width:100%; border:0; background:#454b4c; display:flex; align-items:center; gap:0.6rem; padding:0.78rem; text-align:left; }
+    .acc-head .icon { width:1.18rem; height:1.18rem; border-radius:50%; display:grid; place-items:center; background:#68aee0; color:#fff; font-size:0.78rem; }
+    .acc-head .title { font-weight:800; color:#fff; }
+    .acc-head .desc { color:#c3cbcb; margin-left:0.2rem; font-size:0.9rem; }
+    .acc-head .chev { margin-left:auto; color:#6ed6cd; font-size:1.35rem; }
+    .acc-body { display:none; padding:0.7rem 0.8rem 0.85rem; border-top:1px solid #555b5c; }
+    .accordion.open .acc-body { display:block; }
+    .accordion.open .chev { transform:rotate(90deg); }
+    .form-row { display:grid; grid-template-columns:6.2rem 1fr; gap:0.6rem; align-items:center; margin:0.48rem 0; }
+    .inline-selects { display:grid; grid-template-columns:1fr 1fr; gap:0.45rem; min-width:0; }
+    .inline-selects select { min-width:0; }
+    .hint { color:#bbc4c4; font-size:0.82rem; margin-top:0.4rem; padding-left:6.8rem; }
+    .status { color:#cbd4d4; font-size:0.86rem; }
+    .setup-box { border:1px solid #6a9db7; margin-top:0.65rem; padding:0.55rem 0.65rem; color:#e7eeee; font-size:0.78rem; }
+    .setup-title { color:#9bdcff; font-weight:800; margin-bottom:0.35rem; font-size:0.9rem; }
+    .setup-row { display:grid; grid-template-columns:4.8rem 1fr; gap:0.45rem; align-items:start; margin:0.25rem 0; }
+    .setup-tag { display:inline-block; padding:0.25rem 0.45rem; color:#fff; font-weight:800; text-align:center; }
+    .setup-tag.mobmate { background:#73b8de; } .setup-tag.reco { background:#d79632; } .setup-tag.discord { background:#63bdb2; }
+    .inline-help { border:0; background:transparent; color:#7bd6ff; padding:0; margin:0 0.12rem; font-weight:800; text-decoration:underline; text-underline-offset:2px; }
+    .inline-help:hover, .inline-help:focus { color:#a7e6ff; }
+    .va-popover { display:none; margin-top:0.45rem; border:1px solid #6a9db7; background:#323738; padding:0.55rem; box-shadow:0 0.35rem 1rem rgba(0,0,0,.35); }
+    .va-popover.open { display:block; }
+    .va-title { color:#9bdcff; font-weight:900; margin-bottom:0.35rem; }
+    .va-desc, .va-note { color:#d7e0e0; font-size:0.78rem; line-height:1.45; margin:0.25rem 0; white-space:pre-wrap; }
+    .va-note { color:#bbc4c4; }
+    .va-actions { display:flex; flex-wrap:wrap; gap:0.35rem; margin-top:0.45rem; }
+    .va-actions button { padding:0.28rem 0.55rem; font-size:0.76rem; }
+    .va-status { margin-top:0.4rem; font-size:0.78rem; }
+    .sub-settings { border:1px solid #667071; margin-top:0.65rem; padding:0.5rem 0.65rem; }
+    .sub-settings summary { cursor:pointer; color:#dfeeee; font-weight:800; }
+    #asr-cue-settings .hint { padding-left:0; margin-bottom:0.55rem; }
+    #asr-cue-settings select { min-width:0; }
+    #asr-cue-settings > label { display:block; font-size:0.82rem; margin:0.55rem 0; }
+    #asr-cue-settings > button { padding:0.3rem 0.55rem; }
+    .mode-tabs { display:flex; gap:0; margin:0 0.55rem 0.45rem; }
+    .mode-tab { flex:1; border:1px solid #5b6263; background:#4b5152; color:#bdc7c7; padding:0.5rem 0.8rem; font-size:0.9rem; font-weight:700; text-align:center; cursor:pointer; transition:background .15s, color .15s; }
+    .mode-tab:first-child { border-radius:5px 0 0 5px; border-right:0; }
+    .mode-tab:last-child { border-radius:0 5px 5px 0; }
+    .mode-tab.active { background:#35af99; color:#fff; border-color:#2a9a84; }
+    .mode-tab:hover:not(.active) { background:#555c5d; }
+    .mode-pill { display:inline-block; padding:0.08rem 0.35rem; border-radius:3px; font-weight:700; color:#fff; background:#3a6f77; }
+    .mode-pill.mobfy { background:#2c9b87; color:#ffffff; }
+    .mode-pill.stt { background:#3f5965; color:#d7f2ff; }
+    .status-badge { display:inline-block; padding:0.15rem 0.55rem; font-size:0.78rem; font-weight:700; border-radius:3px; margin-left:0.45rem; vertical-align:middle; }
+    .status-badge.status-on { background:#1b5d4d; color:#7fe8c8; border:1px solid #3aa888; }
+    .status-badge.status-off { background:#3a3e3f; color:#9ba5a5; border:1px solid #5a6466; }
+    .hearing-main-toggle { min-height:2.35rem; padding:0.45rem 1.15rem; border-color:#58dbc9; background:#1b9d8d; color:#fff; font-weight:900; letter-spacing:0.04em; box-shadow:0 0 0 1px rgba(88,219,201,.25) inset; }
+    .hearing-main-toggle.btn-active { background:#8a4b56; border-color:#f08b9a; box-shadow:0 0 0 1px rgba(240,139,154,.25) inset; }
+    .mini-row { display:grid; grid-template-columns:7.8rem 1fr; gap:0.45rem; align-items:center; margin:0.45rem 0; font-size:0.82rem; }
+    .mini-actions { display:flex; gap:0.45rem; margin:0.35rem 0 0 7.8rem; }
+    .mini-actions.centered { justify-content:center; margin-left:0; }
+    .ui-language-corner { position:fixed; right:0.7rem; bottom:0.55rem; display:flex; gap:0.4rem; align-items:center; background:#34393a; border:1px solid #5b6466; padding:0.35rem 0.45rem; font-size:0.72rem; z-index:5; }
+    .ui-language-corner select { width:auto; min-width:8rem; padding:0.25rem; }
+    .ok { color:#77e2bd; } .err { color:#ff8a9a; }
+    .live { display:none; padding:0.55rem; border-top:1px solid #555b5c; }
+    .rt-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:0.35rem; }
+    .rt-card { border:1px solid #5a6263; background:#4a5051; padding:0.45rem; min-width:0; }
+    .rt-label { color:#bdc7c7; font-size:0.72rem; }
+    .rt-value { color:#fff; font-size:0.9rem; font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .rt-transcript { display:none; margin-top:0.55rem; min-height:2.35rem; background:#555c5d; border:1px solid #667071; border-radius:4px; padding:0.55rem; white-space:pre-wrap; }
+    .rt-history { display:none; margin-top:0.45rem; padding-left:1.25rem; max-height:8rem; overflow:auto; }
+    .rt-history li { margin:0.2rem 0; }
+    .rt-options { display:flex; gap:0.8rem; flex-wrap:wrap; margin-top:0.45rem; font-size:0.75rem; color:#bdc7c7; }
+    .rt-options b { color:#fff; }
+    .rt-history-main { font-weight:800; }
+    .rt-history-meta { color:#c2cbcb; font-size:0.72rem; }
+    .pending-inline { margin-top:0.55rem; border:1px solid #566061; background:#454b4c; padding:0.42rem 0.55rem; display:flex; align-items:center; gap:0.55rem; flex-wrap:wrap; }
+    .pending-inline-title { display:flex; align-items:center; gap:0.35rem; font-weight:800; color:#f3f8f8; white-space:nowrap; }
+    .pending-inline-icon { width:1rem; height:1rem; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; background:#75bfb3; color:#fff; font-size:0.72rem; }
+    .pending-inline-desc { margin:0; color:#c7d0d0; font-size:0.78rem; line-height:1.35; white-space:nowrap; }
+    .pending-inline-controls { display:flex; gap:0.35rem; align-items:center; flex-wrap:nowrap; }
+    .pending-toggle { min-width:3.8rem; height:2.15rem; line-height:1.2; padding:0 0.6rem; background:#4a5051; border:1px solid #5f696a; color:#fff; }
+    .pending-toggle.active { background:#56b49f; border-color:#79d9c7; color:#fff; font-weight:800; }
+    .pending-wait-label { margin-left:0.1rem; color:#eef5f5; white-space:nowrap; }
+    .pending-inline select { width:auto; height:2.15rem; min-width:6.7rem; line-height:1.25; padding:0.32rem 0.45rem; }
+    .pending-action-row { display:none; gap:0.35rem; align-items:center; flex-wrap:wrap; width:100%; }
+    .pending-current-text { flex:1; min-width:12rem; color:#fff; font-size:0.82rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .pending-inline .status { margin:0; font-size:0.78rem; white-space:nowrap; }
+    .vc-raw-inline { width:100%; box-sizing:border-box; }
+    .vc-raw-inline .pending-inline-desc { flex:1 1 16rem; min-width:0; white-space:normal; overflow-wrap:anywhere; }
+    .vc-raw-inline .pending-inline-controls { flex:0 0 auto; min-height:2.15rem; margin-left:auto; padding:0 0.7rem; border:1px solid #5f696a; background:#4a5051; }
+    .vc-raw-inline input[type="checkbox"] { width:1.15rem; height:1.15rem; margin:0; accent-color:#56b49f; }
+    .drawer { position:fixed; inset:0; display:none; z-index:10; }
+    .drawer.open { display:block; }
+    .drawer-backdrop { position:absolute; inset:0; background:rgba(0,0,0,.45); }
+    .drawer-panel { position:absolute; right:0; top:0; box-sizing:border-box; width:min(100%,30rem); height:100%; background:#3f4546; border-left:1px solid #667071; padding:1rem; overflow:auto; }
+    .drawer-title { display:flex; align-items:center; justify-content:space-between; gap:0.6rem; margin-bottom:0.8rem; }
+    .drawer-title-actions { display:flex; align-items:center; gap:0.35rem; }
+    .drawer-discord-btn { height:1.8rem; padding:0 0.55rem; font-size:0.78rem; }
+    #speaker-reset-dialog { max-width:min(86vw,30rem); background:#3f4546; color:#e8eced; border:1px solid #667071; border-radius:0.6rem; }
+    #speaker-reset-dialog::backdrop { background:rgba(0,0,0,.55); }
+    #speaker-reset-dialog form { display:flex; justify-content:flex-end; gap:0.6rem; }
+    #addon-asr .hint { padding-left:0; overflow-wrap:anywhere; }
+    #addon-asr p { margin:0.4rem 0; }
+    #addon-asr a { display:inline-block; color:#8bd8ff; margin:0.4rem 0.6rem 0.2rem 0; text-underline-offset:0.15rem; }
+    .addon-asr-actions { display:flex; flex-wrap:wrap; gap:0.4rem; margin-top:0.5rem; }
+    .addon-asr-actions button { min-height:1.9rem; height:auto; padding:0.35rem 0.6rem; line-height:1.3; }
+    #addon-asr button:disabled { opacity:0.45; cursor:not-allowed; }
+    .addon-asr-controls { min-width:0; padding:0.5rem; margin-top:0.7rem; border:1px solid #667071; }
+    .addon-asr-controls legend { padding:0 0.3rem; font-size:0.82rem; }
+    #addon-asr[hidden], #addon-asr-open-btn[hidden] { display:none !important; }
+    .config-settings { display:grid; gap:1rem; margin:1rem 0; }
+    .config-settings h3 { margin:0 0 0.65rem; font-size:0.9rem; }
+    .config-field { display:grid; gap:0.45rem; min-width:0; }
+    .config-field label { font-size:0.82rem; color:#d5dddd; }
+    .config-field select, .config-field input { width:100%; min-width:0; box-sizing:border-box; }
+    .config-actions { display:flex; flex-wrap:wrap; gap:0.4rem; }
+    .config-actions button { height:auto; min-height:2rem; padding:0.35rem 0.65rem; }
+    .config-field .hint { padding-left:0; margin:0; overflow-wrap:anywhere; }
+    .config-diagnostics { border:1px solid #667071; border-radius:0.4rem; padding:0.7rem; margin-top:1.2rem; }
+    .config-diagnostics summary { cursor:pointer; font-weight:600; }
+    .config-table { width:100%; table-layout:fixed; border-collapse:collapse; font-size:0.8rem; line-height:1.5; color:#d5dddd; margin-top:0.6rem; }
+    .config-table th, .config-table td { border-bottom:1px solid #555d5e; padding:0.6rem 0.25rem; vertical-align:top; text-align:left; }
+    .config-table th[scope="row"] { width:38%; font-weight:400; word-break:normal; }
+    .config-table td { overflow-wrap:anywhere; user-select:text; }
+    .config-table .config-group { color:#fff; padding-top:1rem; font-weight:600; }
+    #rt-active-engine { overflow-wrap:anywhere; }
+    @media (max-width:480px) {
+      .drawer-title { align-items:flex-start; flex-wrap:wrap; }
+      .drawer-title-actions { flex-wrap:wrap; }
+      .config-table tr, .config-table th[scope="row"], .config-table td { display:block; width:auto; }
+      .config-table th[scope="row"] { border-bottom:0; padding-bottom:0.1rem; color:#aebcbd; }
+      .config-table td { padding-top:0; }
+    }
+    .radio-toolbar { display:flex; gap:0.4rem; align-items:center; }
+    .radio-toolbar input { flex:1; min-width:9rem; }
+    .radio-mini-btn { min-width:6.5rem; height:2rem; padding:0 0.55rem; }
+    .radio-page-tabs { display:flex; gap:0.35rem; }
+    .radio-page-tabs button { min-width:5.4rem; height:2rem; }
+    .radio-overlay-grid { display:grid; grid-template-columns:1fr 1fr; gap:0.55rem 0.7rem; margin:0.55rem 0; }
+    .radio-overlay-field { display:grid; grid-template-columns:6rem 1fr; gap:0.45rem; align-items:center; min-height:2.35rem; }
+    .radio-overlay-field label { font-size:0.86rem; line-height:1.25; }
+    .radio-overlay-field select, .radio-overlay-field input { min-width:0; height:2.25rem; line-height:1.25; }
+    .radio-slots { display:grid; grid-template-columns:1.5rem 1fr; gap:0.3rem 0.45rem; border:1px solid #5c6466; padding:0.45rem; background:#404647; }
+    .radio-slots input { height:1.95rem; padding:0.28rem 0.45rem; }
+    .radio-row-label { align-self:start; padding-top:0.35rem; }
+    .radio-command-side { align-self:start; display:flex; flex-direction:column; gap:0.4rem; padding-top:0.35rem; }
+    .radio-command-side .radio-row-label { padding-top:0; }
+    .radio-command-actions { display:flex; flex-direction:column; gap:0.35rem; align-items:flex-start; }
+    .radio-command-actions button { min-width:6.2rem; }
+    .radio-sep { border:none;border-top:1px solid #5a6263;margin:0.75rem 0; }
+    .vrchat-panel .acc-body { padding-top:0.8rem; grid-template-columns:repeat(2,minmax(0,1fr)); gap:0.65rem 1.1rem; }
+    .accordion.open.vrchat-panel .acc-body { display:grid; }
+    .vrchat-panel .form-row { grid-template-columns:8.4rem 1fr; gap:0.75rem; }
+    .vrchat-panel .field-label { line-height:1.25; color:#eef5f5; }
+    .vrchat-input-row { display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap; }
+    .vrchat-input-host { max-width:10.5rem; }
+    .vrchat-input-port { max-width:6.8rem; }
+    .toggle-switch { position:relative; display:inline-flex; width:3.45rem; height:1.75rem; align-items:center; cursor:pointer; }
+    .toggle-switch input { position:absolute; opacity:0; width:1px; height:1px; }
+    .toggle-switch .track { position:absolute; inset:0; border:1px solid #687172; border-radius:999px; background:#3f4546; transition:background .12s,border-color .12s; }
+    .toggle-switch .thumb { position:absolute; width:1.25rem; height:1.25rem; left:0.27rem; top:0.25rem; border-radius:50%; background:#dfe7e7; box-shadow:0 1px 2px rgba(0,0,0,.35); transition:left .12s,background .12s; }
+    .toggle-switch input:checked + .track { background:#556061; border-color:#7d8b8c; }
+    .toggle-switch input:checked + .track + .thumb { left:1.9rem; background:#f4f8f8; }
+    .vrchat-test-row { display:flex; gap:0.55rem; align-items:center; flex-wrap:wrap; }
+    .vrchat-test-row .btn { min-height:2rem; padding:0.32rem 0.75rem; border-color:#687172; background:#474d4e; }
+    .vrchat-test-row .btn:hover { border-color:#879293; background:#505657; }
+    .vrchat-test-status { color:#c5cece; font-size:0.8rem; line-height:1.35; min-height:1.1rem; }
+    .vrchat-panel .hint { grid-column:1 / -1; padding-left:0; }
+    @media (max-width:520px) { .meter-row { grid-template-columns:1fr; } .form-row, .mini-row, .vrchat-panel .form-row { grid-template-columns:1fr; gap:0.25rem; } .vrchat-panel .acc-body { grid-template-columns:1fr; } .mini-actions { margin-left:0; } .inline-selects { grid-template-columns:1fr; } .hint, .vrchat-panel .hint { padding-left:0; } .rt-grid { grid-template-columns:repeat(2,1fr); } }
+    /* ---- Piper Voice DL custom dropdown ---- */
+    .pdc-row { display:flex; gap:0.4rem; align-items:center; }
+    .pdc-wrap { position:relative; flex:1; min-width:0; }
+    .pdc-trigger { width:100%; display:flex; align-items:center; gap:0.45rem; padding:0.4rem 0.55rem; background:#444a4b; border:1px solid #5c6466; border-radius:3px; text-align:left; cursor:pointer; min-height:2.25rem; color:#f4f7f7; }
+    .pdc-trigger:hover { background:#4a5051; border-color:#6ed6cd; }
+    .pdc-flag { font-size:1.05rem; line-height:1; flex-shrink:0; }
+    .pdc-label { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:0.82rem; }
+    .pdc-arrow { margin-left:auto; color:#6ed6cd; flex-shrink:0; display:inline-block; transition:transform 0.15s; font-style:normal; }
+    .pdc-wrap.open .pdc-arrow { transform:rotate(180deg); }
+    .pdc-panel { display:none; position:absolute; left:0; right:0; top:calc(100% + 3px); z-index:30; max-width:100%; background:#363c3d; border:1px solid #5c7070; border-radius:3px; box-shadow:0 6px 18px rgba(0,0,0,.55); }
+    .pdc-wrap.open .pdc-panel { display:block; }
+    .pdc-search { width:100%; border:0; border-bottom:1px solid #4d5a5a; background:#3f4546; color:#f4f7f7; padding:0.48rem 0.65rem; font:inherit; font-size:0.82rem; border-radius:0; }
+    .pdc-search:focus { outline:none; background:#454c4d; }
+    .pdc-list { max-height:14rem; overflow-y:auto; overflow-x:hidden; }
+    .pdc-item { display:flex; align-items:center; gap:0.45rem; padding:0.42rem 0.65rem; cursor:pointer; font-size:0.82rem; border-bottom:1px solid #424849; min-width:0; }
+    .pdc-item:hover { background:#4a5455; }
+    .pdc-item.pdc-selected { background:#344849; border-left:2px solid #6ed6cd; }
+    .pdc-iflag { font-size:1.05rem; flex-shrink:0; line-height:1; }
+    .pdc-imain { flex:1; min-width:0; }
+    .pdc-iname { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:#f0f4f4; }
+    .pdc-ilang { color:#849090; font-size:0.71rem; }
+    .pdc-ibadges { display:flex; gap:0.2rem; align-items:center; flex-shrink:0; }
+    .pdc-badge { font-size:0.65rem; padding:0.08rem 0.28rem; border-radius:2px; font-weight:700; letter-spacing:0.02em; }
+    .pdc-badge-ok { background:#1b7d6d; color:#b5ffe8; }
+    .pdc-badge-win { background:#2e5999; color:#b8d4ff; }
+    .pdc-badge-q { background:#3a4040; color:#9aabab; }
+    .pdc-badge-qm { background:#1e4f4a; color:#7fd8d0; }
+    .pdc-badge-qh { background:#1a5c42; color:#7fffc4; }
+    /* Download button with fill progress */
+    .piper-dl-btn { padding:0.4rem 0.7rem; position:relative; overflow:hidden; min-width:5.8rem; flex-shrink:0; font-size:0.82rem; white-space:nowrap; transition:border-color 0.25s, color 0.25s; }
+    .piper-dl-btn::before { content:""; position:absolute; left:0; top:0; bottom:0; width:var(--dlp,0%); background:rgba(110,214,205,0.22); transition:width 0.35s ease; pointer-events:none; }
+    .piper-dl-btn.dl-active { border-color:#6ed6cd; color:#9feeea; }
+    .piper-dl-btn.dl-done  { border-color:#4ac99a; color:#4ac99a; }
+    .piper-dl-btn.dl-err   { border-color:#ff8a9a; color:#ff8a9a; }
+    /* License info row */
+    .piper-dl-meta { display:flex; gap:0.55rem; align-items:baseline; font-size:0.78rem; color:#98a8a8; flex-wrap:wrap; margin-top:0.3rem; }
+    .piper-dl-license-tag { background:#2d3838; border:1px solid #445050; padding:0.1rem 0.4rem; border-radius:3px; font-size:0.71rem; font-weight:700; color:#adc8c8; }
+    .piper-dl-status-line { font-size:0.8rem; margin-top:0.25rem; min-height:1.1rem; }
+    .vc-risk-box { display:none; margin-top:0.45rem; padding:0.55rem 0.7rem; border:1px solid #b94a5a; background:#3b2026; color:#ffc4cc; border-radius:0.35rem; font-size:0.82rem; line-height:1.45; }
+    .vc-risk-box strong { color:#ff7f91; font-weight:800; }
+    .vc-risk-box a { color:#ffb2bf; font-weight:700; }
+    /* ===== Setup Wizard (V2) ===== */
+    .setup-overlay { position:fixed; inset:0; display:none; z-index:50; }
+    .setup-overlay.open { display:block; }
+    .setup-backdrop { position:absolute; inset:0; background:rgba(0,0,0,.55); }
+    .setup-panel { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+      width:min(92vw,34rem); max-height:88vh; overflow:auto; background:#3f4546; color:#e8eced;
+      border:1px solid #667071; border-radius:0.6rem; padding:1rem 1.1rem; box-shadow:0 8px 30px rgba(0,0,0,.5); }
+    .setup-head { display:flex; align-items:center; justify-content:space-between; gap:0.6rem; margin-bottom:0.6rem; }
+    .setup-head strong { font-size:1rem; }
+    .setup-dots { display:flex; gap:0.35rem; justify-content:center; margin:0.4rem 0 0.8rem; }
+    .setup-dot { width:0.55rem; height:0.55rem; border-radius:50%; background:#5a6263; }
+    .setup-dot.active { background:#7fd1c2; }
+    .setup-step { display:none; }
+    .setup-step.active { display:block; }
+    .setup-step h3 { margin:0 0 0.4rem; font-size:0.96rem; }
+    .setup-step p { margin:0.2rem 0 0.6rem; font-size:0.84rem; line-height:1.5; color:#cfd6d7; }
+    .setup-panel .setup-row { display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap; margin:0.4rem 0; }
+    .setup-panel .setup-row select { min-width:14rem; }
+    .setup-meter { height:0.7rem; background:#2c3132; border-radius:0.4rem; overflow:hidden; flex:1; min-width:8rem; }
+    .setup-meter-fill { height:100%; width:0%; background:#7fd1c2; transition:width .12s linear; }
+    .setup-result { min-height:1.6rem; padding:0.4rem 0.5rem; background:#2c3132; border-radius:0.4rem; font-size:0.86rem; }
+    .setup-foot { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:0.5rem; margin-top:0.9rem; }
+    .setup-foot .right { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:0.5rem; }
+    .setup-save-hint { font-size:0.82rem; color:#cfd6d7; line-height:1.5; }
+    .setup-btn { height:1.9rem; padding:0 0.7rem; font-size:0.82rem; cursor:pointer; }
+    .setup-btn { transition:transform .08s ease, filter .12s ease, border-color .12s ease; }
+    .setup-btn:active, .setup-btn.setup-pressed { transform:translateY(1px) scale(.98); filter:brightness(1.18); border-color:#7fd1c2; }
+    .setup-btn.setup-pulse { animation:setup-btn-pulse .38s ease; }
+    @keyframes setup-btn-pulse { 0%{transform:scale(1);} 35%{transform:scale(.96);filter:brightness(1.2);} 100%{transform:scale(1);} }
+    .setup-ok { color:#7fd1c2; font-weight:bold; }
+    .setup-warn { color:#f0c36d; }
+    .setup-hidden { display:none !important; }
+    /* --- text speech --- */
+    .ts-wrap { display:flex; flex-direction:column; gap:0.35rem; }
+    .ts-targets { display:inline-flex; gap:0.3rem; }
+    .ts-chip { border:1px solid #5a6164; background:#3c4143; color:#c3cbcb; border-radius:999px; padding:0.22rem 0.7rem; font-size:0.78rem; cursor:pointer; transition:background .18s, border-color .18s, color .18s, transform .08s; }
+    .ts-chip:hover { border-color:#6ed6cd; }
+    .ts-chip:active { transform:translateY(1px); }
+    .ts-chip.active { background:#3a534f; border-color:#6ed6cd; color:#eafffb; }
+    .ts-input-row { display:flex; gap:0.5rem; align-items:stretch; }
+    #ts-input { flex:1; resize:none; border-radius:0.6rem; border:1px solid #5a6164; background:#2c3032; color:#fff; padding:0.55rem 0.7rem; font-size:0.95rem; line-height:1.4; max-height:7.5rem; transition:border-color .18s, box-shadow .18s; }
+    #ts-input:focus { outline:none; border-color:#6ed6cd; box-shadow:0 0 0 3px rgba(110,214,205,0.18); }
+    .ts-send { min-width:4.6rem; border:0; border-radius:0.6rem; background:#5b8f87; color:#fff; font-weight:800; cursor:pointer; padding:0 1rem; transition:background .18s, transform .08s, opacity .18s; }
+    .ts-send:hover:not(:disabled) { background:#6ea79d; }
+    .ts-send:active:not(:disabled) { transform:translateY(1px); }
+    .ts-send:disabled { opacity:0.45; cursor:default; }
+    .ts-foot { display:flex; justify-content:space-between; align-items:center; font-size:0.78rem; color:#9aa3a3; gap:0.4rem; }
+    .ts-foot-right { display:flex; align-items:center; gap:0.5rem; margin-left:auto; }
+    .ts-counter { font-variant-numeric:tabular-nums; }
+    .ts-targets { display:inline-flex; }
+    .ts-wrap.sending #ts-input { border-color:#6ea79d; }
+    .ts-wrap.success #ts-input { border-color:#6ed6cd; box-shadow:0 0 0 3px rgba(110,214,205,0.25); }
+    .ts-wrap.error #ts-input { border-color:#e07a7a; box-shadow:0 0 0 3px rgba(224,122,122,0.22); }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="topbar">
+        <div class="app-icon">☯</div><h1></h1>
+        <button class="top-btn" id="menu-btn" type="button" aria-label="Menu" data-i18n-aria-label="ui.web.menu.title" aria-haspopup="dialog" aria-controls="settings-drawer">☰</button>
+      </div>
+     <div class="subbar"><span id="rt-status" data-i18n="ui.web.status.waitingForStart">Waiting for Start</span> / <span class="mode-pill stt" id="rt-mode-pill">STT→TTS</span> / <span class="link" data-i18n="ui.web.realtime.title">Realtime ASR</span> / <span class="link" id="runtime-pill">Whisper runtime: -</span></div>
+    </header>
+
+    <div id="demo-banner" style="display:none;margin:0 0.55rem 0.55rem;padding:0.55rem 0.65rem;border:1px solid #d79632;background:#4a4030;color:#ffd23f;font-size:0.85rem;">
+      <span id="demo-banner-text"></span>
+      <a id="demo-banner-store-link" href="https://store.steampowered.com/app/4261090/" target="_blank" rel="noopener noreferrer" style="display:none;color:#54c7ff;margin-left:0.4rem;">Steam</a>
+    </div>
+
+    <main class="content">
+      <div id="review-prompt-card" style="display:none;margin:0 0 0.55rem;padding:0.6rem 0.7rem;border:1px solid #565c5d;background:#424748;font-size:0.85rem;">
+        <div style="font-weight:700;margin-bottom:0.25rem;" data-i18n="ui.web.reviewPrompt.title">MobMateをご利用いただきありがとうございます</div>
+        <div style="color:#c7d0d0;margin-bottom:0.45rem;" data-i18n="ui.web.reviewPrompt.message">よろしければ、Steamでレビューを書いて応援してください。今後の改善の励みになります。</div>
+        <div style="display:flex;gap:0.4rem;flex-wrap:wrap;">
+          <button id="review-prompt-write-btn" type="button" style="padding:0.35rem 0.7rem;" data-i18n="ui.web.reviewPrompt.writeReview">レビューを書く</button>
+          <button id="review-prompt-later-btn" type="button" style="padding:0.35rem 0.7rem;" data-i18n="ui.web.reviewPrompt.later">あとで</button>
+          <button id="review-prompt-never-btn" type="button" style="padding:0.35rem 0.7rem;" data-i18n="ui.web.reviewPrompt.never">今後表示しない</button>
+        </div>
+      </div>
+      <section class="panel">
+        <div class="guide" id="rt-guide" data-i18n="ui.web.guide.start">案内: 録音開始して、まず1フレーズ話してみましょう</div>
+        <div id="setup-mic-warning" role="status" hidden style="margin:0.5rem 0;color:#ffcf85;">
+          <span id="setup-mic-warning-text" data-i18n="setup.s2.stopWarning">Microphone test stop is not confirmed. Stop speaking, reopen setup and retry Stop.</span>
+          <button id="setup-mic-reopen" type="button" data-i18n="setup.s2.reopen">Reopen setup</button>
+        </div>
+        <div class="mode-tabs" id="mode-tabs">
+          <button class="mode-tab active" data-mode="stt" id="mode-stt-tab" type="button" data-i18n="mode.stt">STT→TTS</button>
+          <button class="mode-tab" data-mode="mobfy" id="mode-mobfy-tab" type="button" data-i18n="mode.mobfy">Mobfy Voice</button>
+        </div>
+        <div class="meter-row">
+          <div class="meter">
+            <canvas id="rt-waveform" width="600" height="36" style="position:absolute;inset:0;width:100%;height:100%;opacity:0.45;"></canvas>
+            <div class="meter-fill" id="rt-rms-bar"></div>
+            <div class="meter-peak" id="rt-peak-bar"></div>
+            <div style="position:absolute;left:50%;top:0;bottom:0;width:1px;background:rgba(255,255,255,0.25);pointer-events:none;"></div>
+            <div id="rt-spk-bar" style="position:absolute;right:0;top:0;bottom:0;width:0%;background:#a03060;opacity:0.9;"></div>
+            <span class="meter-label left" id="rt-meter-db">-60dB</span>
+            <span class="meter-label right" id="rt-output-meter-label" style="color:rgba(200,150,180,0.7);">TTS</span>
+          </div>
+          <button id="rt-start-btn" class="primary-btn" type="button">▶ 開始</button>
+          <button id="rt-stop-btn" class="primary-btn stop-btn" type="button" disabled style="display:none;" data-i18n="ui.web.button.stopRecognition">■ 停止</button>
+        </div>
+        <div id="mode-stt-content">
+        <div class="tabs" id="rt-final-tabs">
+          <div class="tab active" id="rt-latest-tab" data-i18n="ui.web.latest.empty">最新認識はまだありません...</div>
+          <div class="tab" data-i18n="ui.web.waiting">待機中</div><div class="tab" data-i18n="ui.web.waiting">待機中</div><div class="tab" data-i18n="ui.web.waiting">待機中</div>
+        </div>
+        <div class="progress"><div id="rt-progress-bar"></div></div>
+          <section class="accordion open" data-accordion="textspeech" id="text-speech-panel">
+            <button class="acc-head" type="button"><span class="icon" style="background:#8a7fd6;">T</span><span class="title" data-i18n="ui.web.textSpeech.title">テキスト発話</span><span class="desc" data-i18n="ui.web.textSpeech.description">入力した文をそのまま発話します。</span><span class="chev">›</span></button>
+            <div class="acc-body">
+              <div class="ts-wrap" id="ts-wrap">
+                <div class="ts-input-row">
+                  <textarea id="ts-input" rows="1" data-i18n-placeholder="ui.web.textSpeech.placeholder" placeholder="ここに入力して Enter で発話"></textarea>
+                  <button id="ts-send-btn" class="ts-send" type="button" disabled data-i18n="ui.web.textSpeech.speak">発話</button>
+                </div>
+                <div class="ts-foot">
+                  <span class="ts-hint" data-i18n="ui.web.textSpeech.hint">Shift+Enter で改行 / ↑↓ で履歴</span>
+                  <div class="ts-foot-right">
+                    <span class="ts-counter" id="ts-counter"></span>
+                    <div class="ts-targets" id="ts-targets" role="group">
+                      <button type="button" class="ts-chip active" data-ts-target="tts" data-i18n="ui.web.textSpeech.target.tts">TTS</button>
+                      <button type="button" class="ts-chip" data-ts-target="chatbox" data-i18n="ui.web.textSpeech.target.chatbox">Chatbox</button>
+                      <button type="button" class="ts-chip" data-ts-target="both" data-i18n="ui.web.textSpeech.target.both">両方</button>
+                    </div>
+                  </div>
+                </div>
+                <p class="status" id="ts-status" data-i18n="ui.web.textSpeech.status.ready">待機中</p>
+              </div>
+            </div>
+          </section>
+        <div id="rt-live-panel" class="live">
+          <div class="rt-grid">
+            <div class="rt-card"><div class="rt-label" data-i18n="ui.web.live.vad">VAD</div><div class="rt-value" id="rt-live-vad">-</div></div>
+            <div class="rt-card"><div class="rt-label" data-i18n="ui.web.live.finalAge">Final</div><div class="rt-value" id="rt-live-final-age">-</div></div>
+            <div class="rt-card"><div class="rt-label" data-i18n="ui.web.live.engine">Engine</div><div class="rt-value" id="rt-live-engine">-</div></div>
+          </div>
+          <div class="rt-options" id="rt-options-bar">
+            <span><span data-i18n="ui.web.option.engine">Engine:</span> <b id="opt-engine">-</b></span>
+            <span><span data-i18n="ui.web.option.lang">Lang:</span> <b id="opt-lang">-</b></span>
+            <span><span data-i18n="ui.web.option.scene">Scene:</span> <b id="opt-scene">-</b></span>
+            <span><span data-i18n="ui.web.option.prefilter">Prefilter:</span> <b id="opt-prefilter">-</b></span>
+            <span><span data-i18n="ui.web.option.prompt">Prompt:</span> <b id="opt-prompt">-</b></span>
+          </div>
+          <div class="rt-transcript" id="rt-partial" data-i18n="ui.web.waiting.paren">(waiting)</div>
+          <ol class="rt-history" id="rt-final-history"></ol>
+          <section class="accordion open" data-accordion="pending" id="pending-inline-panel">
+            <button class="acc-head" type="button">
+              <span class="icon" style="background:#75bfb3;">S</span>
+              <span class="title" data-i18n="ui.web.pending.title">発話待機確認モード</span>
+              <span class="desc" data-i18n="ui.web.pending.description">即時発話と待機確認モードを切り替えます。</span>
+              <span class="chev">›</span>
+            </button>
+            <div class="acc-body">
+              <div class="pending-inline-controls">
+                <select id="pending-mode-select" style="display:none;"><option value="instant" data-i18n="ui.web.pending.mode.instant">即時</option><option value="wait" data-i18n="ui.web.pending.mode.wait">待機確認</option></select>
+                <button id="pending-mode-instant-btn" class="pending-toggle" type="button" data-i18n="ui.web.pending.mode.instant">即時</button>
+                <button id="pending-mode-wait-btn" class="pending-toggle" type="button" data-i18n="ui.web.pending.mode.wait">待機確認</button>
+                <label class="pending-wait-label" for="pending-wait-seconds" data-i18n="ui.web.pending.waitSeconds">待機秒数</label>
+                <select id="pending-wait-seconds"><option value="1">1 sec</option><option value="2">2 sec</option><option value="3">3 sec</option><option value="5">5 sec</option><option value="10">10 sec</option><option value="15">15 sec</option><option value="30">30 sec</option></select>
+              </div>
+              <div class="pending-action-row" id="pending-action-row">
+                <span class="pending-current-text" id="pending-current-text"></span>
+                <button id="pending-approve-btn" type="button" data-i18n="ui.web.pending.approve">発声</button>
+                <button id="pending-cancel-btn" type="button" data-i18n="ui.web.pending.cancel">破棄</button>
+                <button id="pending-clear-btn" type="button" data-i18n="ui.web.pending.clear">全消去</button>
+              </div>
+              <p class="status" id="pending-status" data-i18n="ui.web.status.loading">loading...</p>
+            </div>
+          </section>
+        </div>
+        <div id="rt-results" class="live" style="display:none;">
+          <div class="rt-card"><div class="rt-label" data-i18n="ui.web.live.final">Final</div><div class="rt-value" id="rt-final">-</div></div>
+          <div style="display:none"><span id="rt-state"></span><span id="rt-latency"></span><span id="rt-error"></span><span id="rt-live-rms"></span></div>
+        </div>
+        </div><!-- /mode-stt-content -->
+
+        <div id="mode-mobfy-content" style="display:none; padding:0.55rem;">
+          <!-- License gate overlay -->
+          <div id="vc-license-gate" style="display:none;">
+            <div style="background:#3a2a2a; border:2px solid #c06060; border-radius:6px; padding:1rem; margin-bottom:0.7rem;">
+              <h3 style="margin:0 0 0.5rem 0; color:#f0c0c0;" data-i18n="vc.gate.title">⚠ Mobfy Voice モデルのセットアップが必要です</h3>
+              <p style="margin:0 0 0.5rem 0; font-size:0.88rem; line-height:1.5;" data-i18n="vc.gate.description">Mobfy Voiceは同梱のつくよみちゃんRVCモデルを使用します。モデルが見つからない場合はパッケージ内容を確認してください。</p>
+              <div style="background:#2a2a2a; border:1px solid #666; border-radius:4px; padding:0.6rem; margin:0.5rem 0; font-size:0.82rem; line-height:1.6;">
+                <div style="font-weight:bold; margin-bottom:0.3rem;" data-i18n="vc.gate.licenseTitle">含まれるライセンス:</div>
+                <div id="vc-gate-model-license" data-i18n="vc.gate.licenseDynamic" style="white-space:pre-wrap;">選択したモデルの配布元とライセンスを確認してください。</div>
+              </div>
+              <p style="margin:0.5rem 0; font-size:0.82rem; color:#ccc; line-height:1.5;" data-i18n="vc.gate.userResponsibility">ダウンロードすることで、上記ライセンス条件を確認し、自己責任で使用することに同意します。音声変換の出力を詐称・なりすまし等の不正目的に使用しないでください。</p>
+              <div style="margin-top:0.7rem; display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
+                <label for="vc-gate-model-select" style="font-size:0.82rem;" data-i18n="vc.gate.modelLabel">RVCモデル</label>
+                <select id="vc-gate-model-select" style="min-width:220px;"></select>
+                <button id="vc-gate-download-btn" type="button" class="primary-btn" style="min-width:180px;" data-i18n="vc.gate.downloadBtn">同意してダウンロード (~886MB)</button>
+                <span id="vc-gate-status" style="font-size:0.82rem; color:#aaa;"></span>
+              </div>
+              <div style="margin-top:0.4rem; font-size:0.78rem;">
+                <a id="vc-gate-license-link" href="#" target="_blank" rel="noopener" data-i18n="vc.gate.viewLicense">ライセンス全文を確認</a>
+              </div>
+            </div>
+          </div>
+          <!-- Status display -->
+          <div id="vc-status-detail" style="margin-bottom:0.55rem; border:1px solid #566061; background:#454b4c; padding:0.5rem;">
+            <div class="rt-grid">
+              <div class="rt-card"><div class="rt-label" data-i18n="vc.stat.vadControl">VAD制御</div><div class="rt-value" id="vc-stat-vad" data-i18n="vc.status.unused">未使用</div></div>
+              <div class="rt-card"><div class="rt-label" data-i18n="vc.stat.noiseFloor">ノイズフロア</div><div class="rt-value" id="vc-stat-noise-floor">-</div></div>
+              <div class="rt-card"><div class="rt-label" data-i18n="vc.stat.neutralizer">Neutralizer</div><div class="rt-value" id="vc-stat-neutralizer">-</div></div>
+            </div>
+          </div>
+
+          <!-- VC Model -->
+          <div class="form-row">
+            <label data-i18n="vc.label.model">VCモデル</label>
+            <div style="display:flex;gap:0.4rem;align-items:center;min-width:0;">
+              <select id="vc-model-select" disabled>
+                <option value="" data-i18n="vc.model.none">未選択</option>
+              </select>
+              <button id="vc-model-install-btn" type="button" disabled data-i18n="vc.model.installBtn">モデル導入</button>
+              <button id="vcclient-install-btn" type="button" style="display:none;" data-i18n="vc.model.vcclientInstallBtn">VCClient導入支援</button>
+            </div>
+          </div>
+          <div id="vc-no-model-hint" class="hint" style="padding-left:0;" data-i18n="vc.model.installHint">VCモデルは近日追加予定です。</div>
+          <div id="vc-model-risk" class="vc-risk-box">
+            <strong data-i18n="vc.model.riskTitle">重要: 利用条件確認が必要です。</strong>
+            <div data-i18n="vc.model.riskBody">第三者配布モデルです。配布元ライセンス、音声権利、利用条件を確認し、自己責任で使用してください。</div>
+            <div id="vc-model-license-summary" style="white-space:pre-wrap; margin-top:0.25rem;"></div>
+            <div>
+              <a id="vc-model-source-link" href="#" target="_blank" rel="noopener" data-i18n="vc.model.openSource">公式ページを開く</a>
+              <span> / </span>
+              <a id="vc-model-license-link" href="#" target="_blank" rel="noopener" data-i18n="vc.model.openLicense">ライセンスを開く</a>
+            </div>
+          </div>
+          <div id="vc-model-status" class="piper-dl-status-line"></div>
+
+          <div class="pending-inline vc-raw-inline">
+            <label class="pending-inline-title" for="vc-raw-mode" data-i18n="vc.mode.raw">生声寄りモード</label>
+            <p id="vc-raw-mode-hint" class="pending-inline-desc" data-i18n="vc.mode.rawHint">RVC変換以外の音声加工を抑えます。</p>
+            <div class="pending-inline-controls">
+              <input id="vc-raw-mode" type="checkbox" aria-describedby="vc-raw-mode-hint">
+            </div>
+          </div>
+
+        </div><!-- /mode-mobfy-content -->
+      </section>
+
+      <section class="accordion open" data-accordion="audio">
+        <button class="acc-head" type="button"><span class="icon">♫</span><span class="title" data-i18n="ui.web.audio.title">オーディオデバイス</span><span class="desc" data-i18n="ui.web.audio.description">マイク入力とTTS出力先です。</span><span class="chev">›</span></button>
+        <div class="acc-body">
+          <div class="form-row"><label for="rt-device-select" data-i18n="ui.web.audio.input">マイク入力</label><select id="rt-device-select"></select></div>
+          <div class="form-row"><label for="tts-output-device-select" data-i18n="ui.web.audio.ttsOutput">TTS出力先</label><select id="tts-output-device-select"></select></div>
+          <div class="form-row"><label for="tts-monitor-volume-select" data-i18n="ui.web.audio.monitorVolume">モニター音量</label><select id="tts-monitor-volume-select"><option value="0">0% (OFF)</option><option value="10">10%</option><option value="20">20%</option><option value="30">30%</option><option value="40">40%</option><option value="50">50%</option><option value="60">60%</option><option value="70">70%</option><option value="80">80%</option><option value="90">90%</option><option value="100">100%</option></select></div>
+          <div class="form-row"><label for="wav-output-enabled" data-i18n="ui.web.audio.wavOutput">WAV出力</label><label><input id="wav-output-enabled" type="checkbox" style="width:auto;margin-right:0.35rem;"><span data-i18n="ui.web.audio.wavOutputHint">TTS・Mobfyの最終音声を保存</span></label></div>
+          <div class="form-row"><label for="asr-cue-enabled" data-i18n="ui.web.asrCue.title">認識受付音</label><input id="asr-cue-enabled" type="checkbox" style="width:auto;justify-self:start;" aria-describedby="asr-cue-hint asr-cue-status"></div>
+          <p id="asr-cue-status" class="status" role="status" aria-live="polite" data-i18n="ui.web.asrCue.off">OFFです。認識結果の受付では鳴りません。</p>
+          <details class="sub-settings" id="asr-cue-settings">
+            <summary data-i18n="ui.web.asrCue.details">受付音の設定・試聴</summary>
+            <p id="asr-cue-hint" class="hint" data-i18n="ui.web.asrCue.hint">確定結果を受け付けた合図です。内容の正確さやTTS開始を保証しません。曖昧な発話境界では鳴らしません。</p>
+            <div class="form-row"><label for="asr-cue-output" data-i18n="ui.web.asrCue.output">本人用出力先</label><select id="asr-cue-output"><option value="" data-i18n="ui.web.asrCue.choose">出力先を選んでください</option></select></div>
+            <button id="asr-cue-choose" type="button" data-i18n="ui.web.asrCue.chooseButton">出力先の選択・更新</button>
+            <p class="hint" data-i18n="ui.web.asrCue.safety">本人用ヘッドホンを選び、仮想マイク・通話用出力・スピーカーは使わないでください。この確認にチェックしても、実際の通話への非混入やマイクへの回り込み防止を保証するものではありません。</p>
+            <label><input id="asr-cue-confirmed" type="checkbox" style="width:auto;"> <span data-i18n="ui.web.asrCue.confirmed">本人用ヘッドホンを選び、通話へ転送しない設定を確認しました</span></label>
+            <div class="form-row"><label for="asr-cue-volume" data-i18n="ui.web.asrCue.volume">受付音量</label><select id="asr-cue-volume"><option value="10">10%</option><option value="20">20%</option><option value="30">30%</option><option value="50">50%</option><option value="100">100%</option></select></div>
+            <button id="asr-cue-preview" type="button" disabled data-i18n="ui.web.asrCue.preview">試聴して準備する</button>
+          </details>
+          <div style="display:flex;gap:0.5rem;margin:0.3rem 0;align-items:center;">
+            <button id="rt-device-refresh-btn" type="button" style="font-size:0.78rem;padding:0.3rem 0.6rem;" data-i18n="ui.web.common.refresh">Refresh</button>
+            <span class="status" id="rt-device-status" style="margin:0;font-size:0.78rem;" data-i18n="ui.web.status.loadingDevices">loading...</span>
+            <span class="status" id="tts-device-status" style="margin:0;font-size:0.78rem;" data-i18n="ui.web.status.loadingTtsDevices">loading TTS...</span>
+          </div>
+          <div class="setup-box">
+            <div class="setup-title" data-i18n="ui.web.discord.title">Discordの設定例</div>
+            <div class="setup-row"><span class="setup-tag mobmate">MobMate</span><span data-i18n="ui.web.discord.mic">「マイク入力」には、ふだん使うマイクを選びます。</span></div>
+            <div class="setup-row"><span class="setup-tag reco" data-i18n="ui.web.discord.recommended">推奨</span><span><span data-i18n="ui.web.discord.ttsOutput.before">「TTS出力先」には</span><button class="inline-help" id="virtual-audio-help-btn" type="button" aria-expanded="false" aria-controls="virtual-audio-popover" data-i18n="ui.web.discord.ttsOutput.virtualLink">ヴァーチャルデバイス推奨</button><span data-i18n="ui.web.discord.ttsOutput.after">です。Discordの「マイク」として選びやすくなります。</span></span></div>
+            <div class="setup-row"><span class="setup-tag discord">Discord</span><span data-i18n="ui.web.discord.input">Discordの「マイク」には、MobMateの「TTS出力先」を選びます。</span></div>
+            <div class="setup-row"><span class="setup-tag discord">Discord</span><span data-i18n="ui.web.discord.speaker">Discordの「スピーカー」は、ふだん使うヘッドホン/スピーカーのままでOKです。</span></div>
+            <div class="va-popover" id="virtual-audio-popover" role="dialog" aria-labelledby="virtual-audio-title">
+              <div class="va-title" id="virtual-audio-title" data-i18n="ui.web.virtualAudio.title">VB-Audio / VB-CABLE を使う</div>
+              <div class="va-desc" data-i18n="ui.web.virtualAudio.description">VB-CABLE は VB-Audio の仮想オーディオケーブルです。MobMate が公式サイトからインストーラーを取得して起動できます。</div>
+              <div class="va-note" data-i18n="ui.web.virtualAudio.legalNotice">MobMate は VB-CABLE 本体を同梱・再配布しません。導入時に UAC 確認が出る場合があります。</div>
+              <div class="va-status status" id="virtual-audio-status" data-i18n="ui.web.virtualAudio.status.loading">仮想デバイスを確認中...</div>
+              <div class="va-actions">
+                <button id="virtual-audio-install-btn" type="button" data-i18n="ui.web.virtualAudio.install">VB-CABLEを導入</button>
+                <button id="virtual-audio-official-btn" type="button" data-i18n="ui.web.virtualAudio.official">公式サイトを開く</button>
+                <button id="virtual-audio-close-btn" type="button" data-i18n="ui.web.virtualAudio.close">閉じる</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="accordion open" data-accordion="voice">
+        <button class="acc-head" type="button"><span class="icon">⇊</span><span class="title" data-i18n="ui.web.voice.title">音声と認識</span><span class="desc" data-i18n="ui.web.voice.description">ふだん使う音声設定です。</span><span class="chev">›</span></button>
+        <div class="acc-body">
+          <div class="form-row"><label for="rt-language-select" data-i18n="ui.web.realtime.language">言語</label><div class="inline-selects"><select id="rt-language-select"><option value="ja">Japanese (ja)</option><option value="en">English (en)</option><option value="zh">Chinese (zh)</option><option value="ko">Korean (ko)</option></select><button id="addon-asr-open-btn" type="button" hidden inert aria-hidden="true" tabindex="-1" aria-haspopup="dialog" aria-controls="settings-drawer" data-i18n="addon.asr.openSettings">この言語の追加ASR設定</button></div></div>
+          <div class="form-row"><label for="rt-engine-select" data-i18n="addon.asr.baseEngine">基本ASR</label><select id="rt-engine-select" aria-describedby="addon-asr-follow-hint"><option value="whisper">Whisper</option><option value="moonshine">Moonshine</option></select></div>
+          <p class="hint" id="addon-asr-follow-hint" data-i18n="addon.asr.baseEngineHint">保存済みの言語別構成は保持されます。基本ASRを選び直すと、次の開始からその選択を使います。Joint参加の同意は変わりません。</p>
+          <div class="form-row"><label for="rt-active-engine" data-i18n="ui.web.realtime.activeEngine">直近ASR</label><output id="rt-active-engine" aria-live="polite">-</output></div>
+          <p class="hint" id="addon-asr-reconnect-warning" role="status" hidden data-i18n="addon.asr.reconnectRequired">録音状態の引継ぎを確認できません。自動切替は保留します。表示されている停止または開始ボタンを明示的に操作してください。</p>
+          <div class="form-row"><label for="tts-engine-select" data-i18n="ui.web.voice.ttsVoice">TTS / 声</label><div class="inline-selects" id="tts-voice-selects" style="grid-template-columns:1fr;"><select id="tts-engine-select"><option value="auto">Auto</option><option value="windows_sapi">Windows SAPI</option><option value="voicevox">VOICEVOX</option><option value="piper">Piper</option><option value="piper_plus">Piper-Plus</option><option value="kokoro">Kokoro</option><option value="moss">MOSS</option></select><select id="tts-voicevox-speaker-select" style="display:none;"></select><select id="tts-piper-model-select" style="display:none;"></select><select id="tts-kokoro-model-select" style="display:none;"></select><select id="tts-moss-model-select" style="display:none;"></select></div></div>
+          <div class="form-row" id="tts-voicevox-speaker-row" style="display:none;"></div>
+          <div class="form-row" style="display:none;"><label for="rt-scene-select" data-i18n="ui.web.realtime.scene">シーン</label><select id="rt-scene-select"><option value="short_command">Short command</option><option value="talk_clean">Talk clean</option><option value="talk_noisy">Talk noisy</option><option value="talk_low_voice">Low voice</option><option value="desktop_hearing">Desktop hearing</option></select></div>
+          <div class="form-row" style="display:none;"><label for="rt-prefilter-select" data-i18n="ui.web.realtime.prefilter">AIアシスト</label><select id="rt-prefilter-select"><option value="auto">Auto</option><option value="normal">Normal</option><option value="strong">Strong</option><option value="off">Off</option></select></div>
+          <div class="form-row" style="display:none;"><label for="rt-initial-prompt" data-i18n="ui.web.realtime.prompt">プロンプト</label><textarea id="rt-initial-prompt" data-i18n-placeholder="ui.web.realtime.promptPlaceholder" placeholder="認識に使う語彙や文脈。例: MobMate, 次の道を右へ, 助かる"></textarea></div>
+          <input type="checkbox" id="rt-tts-enabled" checked style="display:none;">
+          <div class="form-row"><label for="rt-filler-enabled" data-i18n="ui.web.onsetFiller.title">発話開始フィラー（試験）</label><input id="rt-filler-enabled" type="checkbox" style="width:auto;justify-self:start;" aria-describedby="rt-filler-hint rt-filler-status"></div>
+          <p id="rt-filler-hint" class="hint" data-i18n="ui.web.onsetFiller.hint">話し始めに短い声を先に再生します。初期ONで、選んだ声を自動準備。ON/OFFは保存され、Start後の発話から使えます。</p>
+          <p id="rt-filler-status" class="status" role="status" aria-live="polite" data-i18n="ui.web.onsetFiller.changing">切り替え中…</p>
+          <details class="sub-settings"><summary data-i18n="ui.web.onsetFiller.detailsTitle">対応する声と利用条件</summary><p class="hint" data-i18n="ui.web.onsetFiller.details">日本語はローカルVOICEVOX、英語・中国語は対応するKokoro、対応言語ではMOSSの選択声を使います。声のクレジットと利用条件を守ってください。本文と感情表現が異なる場合があります。</p></details>
+          <details class="sub-settings" id="text-filter-settings">
+            <summary data-i18n="ui.web.textFilter.title">NG / 笑い設定</summary>
+            <div class="mini-row"><label for="text-filter-ng-mode" data-i18n="ui.web.textFilter.ngMode">NG設定モード</label><select id="text-filter-ng-mode"><option value="simple" data-i18n="ui.web.textFilter.ngMode.simple">通常マッチ</option><option value="regex" data-i18n="ui.web.textFilter.ngMode.regex">正規表現</option></select></div>
+            <div class="mini-row"><label for="text-filter-ng-words" data-i18n="ui.web.textFilter.ngWords">NGワード</label><textarea id="text-filter-ng-words" data-i18n-placeholder="ui.web.textFilter.ngWords.placeholder" placeholder="1行に1つ"></textarea></div>
+            <div class="mini-actions"><button id="text-filter-ng-save-btn" type="button" data-i18n="ui.web.textFilter.save">保存</button><button id="text-filter-ng-preset-btn" type="button" data-i18n="ui.web.textFilter.loadPreset">言語プリセットを読み込み</button></div>
+            <p class="hint" style="padding-left:7.8rem;" data-i18n="ui.web.textFilter.hint">1行に1つ。通常マッチでは空白/句読点をならして含まれるか判定します。</p>
+            <div class="mini-row"><label for="laugh-preset-select" data-i18n="ui.web.textFilter.laughPreset">笑い言語プリセット</label><select id="laugh-preset-select"><option value="auto">Auto</option><option value="ja">Japanese (ja)</option><option value="en">English (en)</option><option value="ko">Korean (ko)</option><option value="zh">Chinese (zh)</option><option value="custom">Custom</option></select></div>
+            <div class="mini-row"><label><input type="checkbox" id="laugh-replacement-enabled" style="width:auto;margin-right:0.35rem;"><span data-i18n="ui.web.textFilter.enableLaughReplacement">笑い表現の置き換えを有効化</span></label><span></span></div>
+            <div class="mini-row"><label for="laugh-tokens" data-i18n="ui.web.textFilter.laughTokens">笑い検出トークン</label><input id="laugh-tokens" type="text"></div>
+            <div class="mini-row"><label for="laugh-replacement-words" data-i18n="ui.web.textFilter.replacementWords">笑いの置換語</label><input id="laugh-replacement-words" type="text"></div>
+            <p class="status" id="text-filter-status" data-i18n="ui.web.status.loading">loading...</p>
+          </details>
+          <details class="sub-settings" id="kokoro-dl-settings">
+            <summary data-i18n="tts.kokoro.dl.title">Kokoro モデルDL</summary>
+            <div class="mini-row">
+              <label data-i18n="tts.kokoro.model">モデル</label>
+              <div style="display:flex;flex-direction:column;gap:0.35rem;">
+                <div class="pdc-wrap" id="kokoro-dl-wrap">
+                  <button class="pdc-trigger" id="kokoro-dl-trigger" type="button">
+                    <span class="pdc-flag" id="kokoro-dl-flag">🌐</span>
+                    <span class="pdc-label" id="kokoro-dl-label">—</span>
+                    <i class="pdc-arrow">▾</i>
+                  </button>
+                  <div class="pdc-panel" id="kokoro-dl-panel">
+                    <input class="pdc-search" id="kokoro-dl-search" type="text" placeholder="en, zh, kokoro...">
+                    <div class="pdc-list" id="kokoro-dl-list"></div>
+                  </div>
+                </div>
+                <div style="display:flex;gap:0.4rem;">
+                  <button class="piper-dl-btn" id="kokoro-dl-download-btn" type="button" data-i18n="tts.kokoro.dl.download">Download</button>
+                  <button class="piper-dl-btn" id="kokoro-dl-remove-btn" type="button" data-i18n="tts.kokoro.dl.delete">Delete</button>
+                </div>
+              </div>
+            </div>
+            <div class="mini-row">
+              <label></label>
+              <div>
+                <div class="piper-dl-meta" id="kokoro-dl-meta" style="display:none;">
+                  <span class="piper-dl-license-tag" id="kokoro-dl-license"></span>
+                  <a id="kokoro-dl-source-link" href="#" target="_blank" rel="noopener noreferrer" style="display:none;color:#54c7ff;" data-i18n="ui.web.piperDl.sourceLink">ソース →</a>
+                </div>
+                <div class="piper-dl-status-line" id="kokoro-dl-status"></div>
+              </div>
+            </div>
+          </details>
+          <details class="sub-settings" id="moss-dl-settings">
+            <summary data-i18n="tts.moss.dl.title">MOSSモデルをダウンロード</summary>
+            <div class="mini-row">
+              <label data-i18n="tts.moss.model">モデル</label>
+              <div style="display:flex;flex-direction:column;gap:0.35rem;">
+                <div class="pdc-wrap" id="moss-dl-wrap">
+                  <button class="pdc-trigger" id="moss-dl-trigger" type="button">
+                    <span class="pdc-flag" id="moss-dl-flag">🌐</span>
+                    <span class="pdc-label" id="moss-dl-label">—</span>
+                    <i class="pdc-arrow">▾</i>
+                  </button>
+                  <div class="pdc-panel" id="moss-dl-panel">
+                    <div class="pdc-list" id="moss-dl-list"></div>
+                  </div>
+                </div>
+                <div style="display:flex;gap:0.4rem;">
+                  <button class="piper-dl-btn" id="moss-dl-download-btn" type="button" data-i18n="tts.moss.dl.download">Download</button>
+                  <button class="piper-dl-btn" id="moss-dl-remove-btn" type="button" data-i18n="tts.moss.dl.delete">Delete</button>
+                </div>
+              </div>
+            </div>
+            <div class="mini-row">
+              <label></label>
+              <div>
+                <div class="piper-dl-meta" id="moss-dl-meta" style="display:none;">
+                  <span class="piper-dl-license-tag" id="moss-dl-license"></span>
+                  <a id="moss-dl-source-link" href="#" target="_blank" rel="noopener noreferrer" style="display:none;color:#54c7ff;" data-i18n="ui.web.piperDl.sourceLink">ソース →</a>
+                </div>
+                <div class="piper-dl-status-line" id="moss-dl-status"></div>
+              </div>
+            </div>
+          </details>
+          <details class="sub-settings" id="piper-voice-dl-settings">
+            <summary data-i18n="ui.web.piperDl.title">Piper、Piper-plusモデルDL</summary>
+            <div class="mini-row">
+              <label data-i18n="ui.web.piperDl.searchLabel">ボイスモデル</label>
+              <div style="display:flex;flex-direction:column;gap:0.35rem;">
+                <div class="pdc-wrap" id="piper-dl-wrap">
+                  <button class="pdc-trigger" id="piper-dl-trigger" type="button">
+                    <span class="pdc-flag" id="piper-dl-flag">🌐</span>
+                    <span class="pdc-label" id="piper-dl-label">—</span>
+                    <i class="pdc-arrow">▾</i>
+                  </button>
+                  <div class="pdc-panel" id="piper-dl-panel">
+                    <input class="pdc-search" id="piper-dl-search" type="text" data-i18n-placeholder="ui.web.piperDl.searchPlaceholder" placeholder="ja, en, ru...">
+                    <div class="pdc-list" id="piper-dl-list"></div>
+                  </div>
+                </div>
+                <div style="display:flex;gap:0.4rem;">
+                  <button class="piper-dl-btn" id="piper-dl-download-btn" type="button" data-i18n="ui.web.piperDl.download">Download</button>
+                  <button class="piper-dl-btn" id="piper-dl-remove-btn" type="button" data-i18n="ui.web.piperDl.remove">Remove</button>
+                </div>
+              </div>
+            </div>
+            <div class="mini-row">
+              <label></label>
+              <div>
+                <div class="piper-dl-meta" id="piper-dl-meta" style="display:none;">
+                  <span class="piper-dl-license-tag" id="piper-dl-license"></span>
+                  <a id="piper-dl-source-link" href="#" target="_blank" rel="noopener noreferrer" style="display:none;color:#54c7ff;" data-i18n="ui.web.piperDl.sourceLink">ソース →</a>
+                </div>
+                <div class="piper-dl-status-line" id="piper-dl-status"></div>
+              </div>
+            </div>
+          </details>
+          <!--<p class="hint" data-i18n="ui.web.voice.hint"></p>-->
+        </div>
+      </section>
+
+      <!-- Translation section -->
+      <section class="accordion" data-accordion="translation">
+        <button class="acc-head" type="button"><span class="icon">🌐</span><span class="title" data-i18n="translation.title">翻訳</span><span class="desc" data-i18n="translation.desc">字幕や発話の翻訳先を選びます。</span><span class="chev">›</span></button>
+        <div class="acc-body">
+          <div class="form-row">
+            <label data-i18n="translation.source">認識言語</label>
+            <span id="translation-source-display" style="padding:0.25rem 0.5rem;color:var(--text-secondary);font-size:0.85rem;">auto</span>
+          </div>
+          <div class="form-row">
+            <label for="translation-target-select" data-i18n="translation.target">翻訳先</label>
+            <select id="translation-target-select"></select>
+          </div>
+          <div id="translation-unavailable-note" class="hint" style="display:none;color:#e08;padding-left:0;" data-i18n="translation.model_unavailable">翻訳モデルが見つかりません。</div>
+          <p class="hint" data-i18n="translation.helper">字幕や発話を翻訳したいときに使います。OFF なら原文のまま</p>
+        </div>
+      </section>
+
+      <!-- Hearing / 字幕 section -->
+      <section class="accordion" data-accordion="hearing">
+        <button class="acc-head" type="button">
+          <span class="icon">🎧</span>
+          <span class="title" data-i18n="hearing.section.title">Hearing</span>
+          <span class="desc" data-i18n="hearing.section.desc">相手の音声を字幕表示</span>
+          <span class="chev">›</span>
+        </button>
+        <div class="acc-body">
+
+          <!-- Row 1: ON/OFF -->
+          <div class="form-row">
+            <label class="field-label" data-i18n="hearing.label.control">制御</label>
+            <div>
+              <button id="hearing-toggle" class="btn btn-sm hearing-main-toggle" data-i18n="hearing.btn.start">字幕開始</button>
+              <span id="hearing-status-badge" class="status-badge status-off" data-i18n="hearing.status.off">停止</span>
+            </div>
+          </div>
+
+          <!-- Row 2: エンジン -->
+          <div class="form-row">
+            <label class="field-label" data-i18n="hearing.label.engine">エンジン</label>
+            <select id="hearing-engine">
+              <option value="joint_auto" data-i18n="hearing.engine.jointAuto">JointAuto (推奨)</option>
+              <option value="whisper"     data-i18n="hearing.engine.whisper">Whisper</option>
+              <option value="sense_voice" data-i18n="hearing.engine.senseVoice">SenseVoice</option>
+            </select>
+          </div>
+
+          <!-- Row 3: 翻訳先 -->
+          <div class="form-row">
+            <label class="field-label" data-i18n="hearing.label.translateTo">翻訳先</label>
+            <select id="hearing-translate-to">
+              <option value="OFF" data-i18n="hearing.translateTo.off">OFF (翻訳しない)</option>
+            </select>
+          </div>
+
+          <!-- 詳細設定 -->
+          <details class="sub-settings" id="hearing-details">
+            <summary data-i18n="hearing.advanced">詳細設定 ▸</summary>
+
+            <div class="form-row">
+              <label class="field-label" data-i18n="hearing.label.lang">認識言語</label>
+              <select id="hearing-lang">
+                <option value="auto" data-i18n="lang.auto">Auto (自動)</option>
+              </select>
+            </div>
+
+            <div class="form-row">
+              <label class="field-label" data-i18n="hearing.label.audioMode">入力デバイス</label>
+              <select id="hearing-audio-mode">
+                <option value="loopback" data-i18n="hearing.audioMode.loopback">システム音声 (ループバック)</option>
+                <option value="mic"      data-i18n="hearing.audioMode.mic">マイク</option>
+              </select>
+            </div>
+
+            <div class="form-row"><label class="field-label" data-i18n="hearing.pref.font">文字サイズ</label><select id="hearing-overlay-font"><option value="12">12</option><option value="16">16</option><option value="20">20</option><option value="24">24</option><option value="28">28</option><option value="32">32</option><option value="36">36</option></select></div>
+            <div class="form-row"><label class="field-label" data-i18n="hearing.pref.background">背景</label><select id="hearing-overlay-bg"><option value="blue" data-i18n="hearing.pref.bg.blue">ブルー</option><option value="green" data-i18n="hearing.pref.bg.green">グリーン</option><option value="gray" data-i18n="hearing.pref.bg.gray">グレー</option><option value="red" data-i18n="hearing.pref.bg.red">レッド</option></select></div>
+            <div class="form-row"><label class="field-label" data-i18n="hearing.pref.opacity">透明度</label><select id="hearing-overlay-opacity"><option value="45">45</option><option value="60">60</option><option value="72">72</option><option value="85">85</option><option value="100">100</option></select></div>
+            <div class="form-row"><label class="field-label" data-i18n="hearing.pref.history">履歴数</label><select id="hearing-overlay-history"><option value="3">3</option><option value="4">4</option><option value="6">6</option><option value="8">8</option><option value="10">10</option></select></div>
+            <div class="form-row"><label class="field-label" data-i18n="hearing.pref.doneKeep">翻訳表示の保持（秒）</label><select id="hearing-overlay-done-keep"><option value="6">6</option><option value="9">9</option><option value="12">12</option><option value="18">18</option><option value="24">24</option></select></div>
+            <div class="form-row"><label class="field-label" data-i18n="hearing.pref.flow">流れ方</label><select id="hearing-overlay-flow"><option value="horizontalRight" data-i18n="hearing.pref.flow.horizontalRight">横（左から右）</option><option value="horizontalLeft" data-i18n="hearing.pref.flow.horizontalLeft">横（右から左）</option></select></div>
+            <div class="hint" data-i18n="hearing.pref.tip">ヒント: 字幕ウィンドウをドラッグすると移動できます。</div>
+
+            <div class="form-row">
+              <label class="field-label" data-i18n="hearing.obs.title">OBS連携</label>
+              <div style="display:flex;gap:0.4rem;align-items:center;flex:1;min-width:0;">
+                <input id="hearing-obs-url" type="text" readonly style="flex:1;min-width:0;">
+                <button id="hearing-obs-copy" class="btn btn-sm" type="button" data-i18n="hearing.obs.copy">コピー</button>
+              </div>
+            </div>
+            <div class="form-row">
+              <label class="field-label" data-i18n="hearing.obs.layout">OBS表示</label>
+              <select id="hearing-obs-layout">
+                <option value="stack" data-i18n="hearing.obs.layout.stack">縦積み</option>
+                <option value="row" data-i18n="hearing.obs.layout.row">横並び</option>
+                <option value="grid" data-i18n="hearing.obs.layout.grid">2列カード</option>
+                <option value="latest" data-i18n="hearing.obs.layout.latest">最新のみ</option>
+              </select>
+            </div>
+            <div class="form-row">
+              <label class="field-label" data-i18n="hearing.obs.maxCards">OBS最大枚数</label>
+              <select id="hearing-obs-max"><option value="1">1</option><option value="2" selected>2</option><option value="3">3</option><option value="4">4</option></select>
+            </div>
+            <div class="form-row">
+              <label class="field-label" data-i18n="hearing.obs.cardWidth">カード幅</label>
+              <select id="hearing-obs-width"><option value="360px">360</option><option value="460px" selected>460</option><option value="560px">560</option><option value="680px">680</option></select>
+            </div>
+            <div class="hint" data-i18n="hearing.obs.hint">OBSの「ブラウザ」ソースにこのURLを追加すると、字幕を配信画面に重ねて表示できます（背景透過・幅800×高さ250推奨）。</div>
+
+
+          </details>
+
+          <!-- 直近キャプション表示 -->
+          <div id="hearing-last-text" style="display:none;padding:6px 0;">
+            <div id="hearing-last-source"     style="font-size:0.95rem;"></div>
+            <div id="hearing-last-translated" style="font-size:0.8rem;color:var(--text-secondary);"></div>
+          </div>
+
+        </div><!-- /acc-body -->
+      </section>
+
+      <!-- VRChat OSC section -->
+      <section class="accordion vrchat-panel" data-accordion="vrchat">
+        <button class="acc-head" type="button">
+          <span class="icon">💬</span>
+          <span class="title" data-i18n="vrchat.section.title">VRChat連携</span>
+          <span class="desc" data-i18n="vrchat.section.desc">自分の発話をVRChatチャットボックスに表示</span>
+          <span class="chev">›</span>
+        </button>
+        <div class="acc-body">
+          <div class="form-row">
+            <label class="field-label" data-i18n="vrchat.label.enabled">チャットボックス送信</label>
+            <label class="toggle-switch" aria-label="VRChat OSC enabled">
+              <input id="vrchat-osc-enabled" type="checkbox">
+              <span class="track"></span>
+              <span class="thumb"></span>
+            </label>
+          </div>
+          <div class="form-row">
+            <label class="field-label" data-i18n="vrchat.label.host">送信先ホスト</label>
+            <input id="vrchat-osc-host" class="vrchat-input-host" type="text" value="127.0.0.1">
+          </div>
+          <div class="form-row">
+            <label class="field-label" data-i18n="vrchat.label.port">送信先ポート</label>
+            <input id="vrchat-osc-port" class="vrchat-input-port" type="number" value="9000" min="1" max="65535">
+          </div>
+          <div class="form-row">
+            <label class="field-label" data-i18n="vrchat.label.notify">通知音を鳴らす</label>
+            <label class="toggle-switch" aria-label="VRChat OSC notification sound">
+              <input id="vrchat-osc-notify" type="checkbox">
+              <span class="track"></span>
+              <span class="thumb"></span>
+            </label>
+          </div>
+          <div class="form-row">
+            <label class="field-label" data-i18n="vrchat.label.test">接続テスト</label>
+            <div class="vrchat-test-row">
+              <button id="vrchat-osc-test" class="btn btn-sm" type="button" data-i18n="vrchat.test.send">テスト送信</button>
+              <span id="vrchat-osc-test-status" class="vrchat-test-status"></span>
+            </div>
+          </div>
+          <div class="hint" data-i18n="vrchat.hint">VRChat側で OSC を有効にしてください（Action Menu → Options → OSC → Enabled）。送信先は通常 127.0.0.1:9000 のままで動作します。</div>
+        </div><!-- /acc-body -->
+      </section>
+
+      <section class="accordion" data-accordion="radio">
+        <button class="acc-head" type="button"><span class="icon">▣</span><span class="title" data-i18n="settings.section.radioChat">Radio Chat</span><span class="desc" data-i18n="settings.section.radioChat.desc">Radio Chat を使うキーの組み合わせを設定。</span><span class="chev">›</span></button>
+        <div class="acc-body">
+          <div class="form-row"><label for="radio-shortcut-display" data-i18n="ui.web.radio.shortcut">Shortcut</label><div class="radio-toolbar"><input id="radio-shortcut-display" type="text" readonly><button id="radio-capture-btn" class="radio-mini-btn" type="button" data-i18n="ui.web.radio.capture">Capture input</button><button id="radio-preview-btn" class="radio-mini-btn" type="button" data-i18n="ui.web.radio.preview">Preview</button></div></div>
+          <p class="hint" style="padding-left:0; margin-top:0.15rem;" data-i18n="ui.web.radio.recommend">Recommended: Scroll Lock / Pause / Ctrl+Alt+Shift+M</p>
+          <div id="radio-linux-hint" style="display:none; margin-top:0.4rem; padding:0.4rem 0.6rem; background:#1e2d23; border-left:3px solid #4a8; line-height:1.5; font-size:0.85rem;">
+            <span data-i18n="ui.web.radio.linuxHint">Linux: Shortcut not auto-registered. Bind the command below in KDE System Settings › Custom Shortcuts, or run radio-chat-shortcut-helper.sh install-gnome for GNOME.</span>
+            <div style="display:flex;gap:0.4rem;align-items:center;margin-top:0.35rem;">
+              <code id="radio-linux-cmd" style="flex:1;background:#111;color:#9f9;padding:2px 6px;font-size:11px;overflow-x:auto;white-space:nowrap;border-radius:3px;"></code>
+              <button id="radio-linux-copy-btn" type="button" style="font-size:11px;padding:2px 8px;" data-i18n="ui.web.radio.linuxCopy">Copy</button>
+            </div>
+          </div>
+          <div class="pending-action-row" id="radio-pending-action-row">
+            <span class="pending-current-text" id="radio-pending-current-text"></span>
+            <button id="radio-pending-approve-btn" type="button" data-i18n="ui.web.pending.approve">発声</button>
+            <button id="radio-pending-cancel-btn" type="button" data-i18n="ui.web.pending.cancel">破棄</button>
+          </div>
+          <div class="radio-overlay-grid">
+            <div class="radio-overlay-field"><label for="radio-overlay-position">Position</label><select id="radio-overlay-position"><option value="top_left">Top left</option><option value="top_right">Top right</option><option value="bottom_left">Bottom left</option><option value="bottom_right">Bottom right</option></select></div>
+            <div class="radio-overlay-field"><label for="radio-overlay-bg">Background</label><select id="radio-overlay-bg"><option value="#1D6F5A">Deep green #1D6F5A</option><option value="#202B33">Dark blue #202B33</option><option value="#000000">Black #000000</option></select></div>
+            <div class="radio-overlay-field"><label for="radio-overlay-fg">Text color</label><select id="radio-overlay-fg"><option value="#FFFFFF">White #FFFFFF</option><option value="#E8FFF8">Mint white #E8FFF8</option><option value="#FFD966">Yellow #FFD966</option></select></div>
+            <div class="radio-overlay-field"><label for="radio-overlay-font-size">Font size</label><input id="radio-overlay-font-size" type="number" min="10" max="32" step="1"></div>
+            <div class="radio-overlay-field"><label for="radio-overlay-opacity">Opacity</label><input id="radio-overlay-opacity" type="number" min="20" max="100" step="5"></div>
+          </div>
+          <div class="form-row"><label data-i18n="ui.web.radio.page">ページ</label><div class="radio-page-tabs"><button id="radio-page-0" type="button">Page 0</button><button id="radio-page-1" type="button">Page 1</button><button id="radio-page-2" type="button">Page 2</button></div></div>
+          <div class="form-row"><div class="radio-command-side"><label class="radio-row-label" data-i18n="ui.web.radio.commands">定型文 (p0.1..p2.9)</label><div class="radio-command-actions"><button id="radio-save-btn" type="button" data-i18n="ui.web.radio.save">保存</button><button id="radio-reload-btn" type="button" data-i18n="ui.web.radio.reload">再読込</button><button id="radio-speak-btn" type="button" data-i18n="ui.web.radio.speak">選択ページ1番を発声</button></div></div><div id="radio-slots" class="radio-slots"></div></div>
+          <p class="status" id="radio-status" data-i18n="ui.web.status.loading">loading...</p>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="ui-language-corner"><label for="ui-language-select" data-i18n="settings.label.uiLanguage">UI Language</label><select id="ui-language-select"><option value="en">English</option><option value="ja">Japanese</option><option value="ko">Korean</option><option value="zh_cn">简体中文</option><option value="zh_tw">繁體中文</option></select></div>
+
+  <aside class="drawer" id="settings-drawer" aria-hidden="true">
+    <div class="drawer-backdrop" id="drawer-backdrop"></div>
+    <div class="drawer-panel" role="dialog" aria-modal="true" aria-labelledby="drawer-title">
+      <div class="drawer-title"><strong id="drawer-title" tabindex="-1" data-i18n="ui.web.menu.title">設定</strong><div class="drawer-title-actions"><button class="drawer-discord-btn" id="drawer-wizard-btn" type="button" data-i18n="setup.menu.open">Setup Wizard</button><button class="drawer-discord-btn" id="drawer-discord-btn" type="button" data-i18n="wizard.discord">Discord</button><button class="top-btn" id="drawer-close-btn" type="button" aria-label="Close" data-i18n-aria-label="ui.button.close">×</button></div></div>
+      <!-- Linux: system soft-restart button (audio subsystem reinit) -->
+      <div id="system-restart-row" class="speaker-controls" style="display:none; padding:8px 0; border-bottom:1px solid #333; margin-bottom:6px;">
+        <button id="system-restart-btn" class="top-btn" style="font-size:12px; padding:4px 12px;" data-i18n="ui.web.system.restart">Restart</button>
+        <span style="font-size:11px; color:#777; margin-left:6px;" data-i18n="ui.web.system.restartHint">音声システムを再初期化</span>
+      </div>
+      <!-- Phase 7A: Speaker ID reset (enrollment is always-on, no toggle needed) -->
+      <div class="speaker-controls" style="padding:8px 0; border-bottom:1px solid #333; margin-bottom:12px;">
+        <button id="speaker-reset-btn" class="top-btn" style="font-size:12px; padding:4px 12px;" data-i18n="ui.web.speaker.reset">認識の学習状態を初期化</button>
+        <p class="hint" data-i18n="ui.web.speaker.resetHint">話者情報・学習語彙・音量適応を消去します。</p>
+        <div id="speaker-reset-status" role="status" tabindex="-1" class="hint"></div>
+        <dialog id="speaker-reset-dialog" aria-labelledby="speaker-reset-title" aria-describedby="speaker-reset-description">
+          <h3 id="speaker-reset-title" data-i18n="ui.web.speaker.reset">認識の学習状態を初期化</h3>
+          <p id="speaker-reset-description" data-i18n="ui.web.speaker.resetConfirm">話者情報・すべての学習語彙・音量適応を消去します。元に戻せません。初期化しますか？</p>
+          <form method="dialog">
+            <button id="speaker-reset-cancel" value="cancel" autofocus data-i18n="ui.button.cancel">キャンセル</button>
+            <button value="reset" data-i18n="ui.web.speaker.resetAction">消去して初期化</button>
+          </form>
+        </dialog>
+      </div>
+      <section id="addon-asr" hidden inert aria-hidden="true" style="padding:8px 0; border-bottom:1px solid #333; margin-bottom:12px;">
+        <strong id="addon-asr-title" tabindex="-1" data-i18n="addon.asr.title">追加ASR管理</strong>
+        <p data-i18n="addon.asr.routePending">認識言語に保存した構成を自動適用します。JointAUTOへの参加は言語ごとの明示指定です。</p>
+        <div id="addon-asr-profile-language" class="hint"></div>
+        <p class="hint" data-i18n="addon.asr.switchBoundary">認識中の言語変更では現在発話の結果を破棄し、停止確認後に新言語で自動再開します。</p>
+        <div id="addon-asr-active" class="hint"></div>
+        <label for="addon-asr-search" data-i18n="addon.asr.model">モデル</label>
+        <select id="addon-asr-model" hidden aria-hidden="true" tabindex="-1"><option value=""></option></select>
+        <div class="pdc-wrap" id="addon-asr-wrap">
+          <button class="pdc-trigger" id="addon-asr-trigger" type="button" aria-haspopup="listbox" aria-controls="addon-asr-list" aria-expanded="false">
+            <span class="pdc-label" id="addon-asr-label" data-i18n="addon.asr.chooseModel">モデルを選択</span><i class="pdc-arrow" aria-hidden="true">▾</i>
+          </button>
+          <div class="pdc-panel" id="addon-asr-panel">
+            <input class="pdc-search" id="addon-asr-search" type="text" role="combobox" aria-autocomplete="list" aria-controls="addon-asr-list" aria-expanded="false" autocomplete="off" data-i18n-placeholder="addon.asr.search" placeholder="モデル名・言語で検索">
+            <div class="pdc-list" id="addon-asr-list" role="listbox" aria-label="ASR models"></div>
+          </div>
+        </div>
+        <div id="addon-asr-details" class="hint"></div>
+        <div id="addon-asr-hint-controls" hidden>
+          <label for="addon-asr-language-mode" data-i18n="addon.asr.hintMode">保存構成のQwen言語hint</label>
+          <select id="addon-asr-language-mode">
+            <option value="requested" data-i18n="addon.asr.hintRequested">要求言語をモデルへ指定</option>
+            <option value="auto" data-i18n="addon.asr.hintAuto">モデルで自動判定</option>
+          </select>
+        </div>
+        <div id="addon-asr-selection" class="hint"></div>
+        <a id="addon-asr-model-source" target="_blank" rel="noopener" data-i18n="addon.asr.modelSource">モデルの配布元</a>
+        <a id="addon-asr-runtime-source" target="_blank" rel="noopener" data-i18n="addon.asr.runtimeSource">runtimeの配布元</a>
+        <div class="addon-asr-actions">
+          <button id="addon-asr-setup" class="setup-btn" type="button" disabled data-i18n="addon.asr.setup">ダウンロードして導入</button>
+          <button id="addon-asr-save-profile" class="setup-btn" type="button" disabled data-i18n="addon.asr.saveProfile">この認識言語の構成として保存</button>
+          <button id="addon-asr-cancel" class="setup-btn" type="button" disabled data-i18n="addon.asr.cancel">中止</button>
+        </div>
+        <fieldset class="addon-asr-controls">
+          <legend id="addon-asr-controls-target" data-i18n="addon.asr.controlsUnavailable">現在の構成の操作</legend>
+          <div class="addon-asr-actions">
+            <button id="addon-asr-probe" class="setup-btn" type="button" disabled data-i18n="addon.asr.probe">動作確認</button>
+            <button id="addon-asr-enabled" class="setup-btn" type="button" disabled data-i18n="addon.asr.enable">有効にする</button>
+            <button id="addon-asr-joint" class="setup-btn" type="button" disabled aria-pressed="false" data-i18n="addon.asr.jointOn">JointAUTOに参加する</button>
+          </div>
+          <div class="hint" data-i18n="addon.asr.jointHint">選択した認識言語に対応する追加候補だけが参加します。候補実行・採用・品質改善は別です。</div>
+          <div id="addon-asr-resident" class="hint"></div>
+          <div id="addon-asr-runtime-warning" class="hint"></div>
+          <div id="addon-asr-evaluation" class="hint"></div>
+          <div id="addon-asr-status" role="status" class="hint"></div>
+        </fieldset>
+      </section>
+      <section class="config-settings" aria-labelledby="config-settings-title">
+        <h3 id="config-settings-title" data-i18n="ui.web.config.audioSettings">音声設定</h3>
+        <div class="config-field"><label for="cfg-defaultModelPath" data-i18n="ui.web.config.modelPath">Whisperモデル</label><select id="cfg-defaultModelPath"><option value="" data-i18n="ui.web.status.loading">loading...</option></select>
+          <button type="button" id="whisper-turbo-download" data-i18n="ui.web.whisper.downloadTurbo">Turboを取得・選択（834 MiB）</button>
+          <button type="button" id="whisper-turbo-cancel" data-i18n="ui.web.whisper.cancel" hidden>キャンセル</button>
+          <small data-i18n="ui.web.whisper.optional">Turboは任意です。未取得・オフライン時は同梱のSmallを使えます。</small>
+          <small id="whisper-model-status" role="status" aria-live="polite"></small>
+        </div>
+        <div id="config-voicevox" class="config-field"></div>
+      </section>
+      <details class="config-diagnostics" id="config-diagnostics">
+        <summary tabindex="0" data-i18n="ui.web.config.diagnostics">詳細診断</summary>
+        <table id="config-table" class="config-table">
+          <tbody>
+            <tr><th class="config-group" colspan="2" data-i18n="ui.web.config.recognitionRuntime">認識ランタイム</th></tr>
+            <tr><th scope="row" data-i18n="ui.web.config.nativeExePath">Native実行ファイル</th><td id="cfg-nativeExePath">-</td></tr>
+            <tr><th scope="row" data-i18n="ui.web.config.whisperRuntime">Whisper実行方式</th><td id="cfg-whisperRuntimeMode">-</td></tr>
+            <tr><th scope="row" data-i18n="ui.web.config.whisperDllDir">Whisper DLLフォルダー</th><td id="cfg-whisperDllDir">-</td></tr>
+            <tr><th scope="row" data-i18n="ui.web.config.runtimeReason">実行方式の理由</th><td id="cfg-whisperRuntimeReason">-</td></tr>
+            <tr><th scope="row" data-i18n="ui.web.config.moonshineDllDir">Moonshine DLLフォルダー</th><td id="cfg-defaultMoonshineDllDir">-</td></tr>
+            <tr><th scope="row" data-i18n="ui.web.config.moonshineModelRoot">Moonshineモデルルート</th><td id="cfg-defaultMoonshineModelRoot">-</td></tr>
+          </tbody>
+          <tbody>
+            <tr><th class="config-group" colspan="2" data-i18n="ui.web.config.distribution">配布とSteam</th></tr>
+            <tr><th scope="row" data-i18n="ui.web.config.releaseVersion">アプリのバージョン</th><td id="cfg-releaseVersion">-</td></tr>
+            <tr><th scope="row" data-i18n="ui.web.config.releaseRuntimeMode">配布ランタイム方式</th><td id="cfg-releaseRuntimeMode">-</td></tr>
+            <tr><th scope="row" data-i18n="ui.web.config.releaseRuntimeReasonCode">配布方式の理由コード</th><td id="cfg-releaseRuntimeReasonCode">-</td></tr>
+            <tr><th scope="row" data-i18n="ui.web.config.releaseSteamStatus">Steam接続状態</th><td id="cfg-releaseSteamStatus">-</td></tr>
+            <tr><th scope="row" data-i18n="ui.web.config.releaseDlcStatus">DLC状態</th><td id="cfg-releaseDlcStatus">-</td></tr>
+            <tr><th scope="row" data-i18n="ui.web.config.releaseCloudConfigDir">クラウド設定フォルダー</th><td id="cfg-releaseCloudConfigDir">-</td></tr>
+          </tbody>
+        </table>
+      </details>
+    </div>
+  </aside>
+
+  <!-- ===== Setup Wizard (V2) ===== -->
+  <div class="setup-overlay" id="setup-overlay" aria-hidden="true">
+    <div class="setup-backdrop" id="setup-backdrop"></div>
+    <div class="setup-panel" role="dialog" aria-modal="true" aria-labelledby="setup-title" aria-describedby="setup-save-hint">
+      <div class="setup-head">
+        <strong id="setup-title" tabindex="-1" data-i18n="setup.title">Initial Setup</strong>
+        <button class="top-btn" id="setup-close-btn" type="button" data-i18n="setup.btn.close">Close</button>
+      </div>
+      <p class="setup-save-hint" id="setup-save-hint" data-i18n="setup.saveHint">変更やテストは操作時に反映されます。途中で閉じても適用済みの変更は残ります。閉じるだけでは保存・完了にしません。</p>
+      <div class="setup-dots" id="setup-dots">
+        <span class="setup-dot" data-step="0"></span>
+        <span class="setup-dot" data-step="1"></span>
+        <span class="setup-dot" data-step="2"></span>
+        <span class="setup-dot" data-step="3"></span>
+      </div>
+
+      <section class="setup-step" data-step="0">
+        <h3 id="setup-step-title-0" tabindex="-1" data-i18n="setup.s2.title">Microphone</h3>
+        <p data-i18n="setup.s2.desc"></p>
+        <div class="setup-row"><label for="setup-mic-select" data-i18n="setup.s2.device">Microphone</label><select id="setup-mic-select"></select></div>
+        <div class="setup-row"><button class="setup-btn" id="setup-mic-test" type="button" data-i18n="setup.s2.test">Test microphone</button><button class="setup-btn" id="setup-mic-retry-stop" type="button" hidden data-i18n="setup.s2.retryStop">Retry Stop</button></div>
+        <div class="setup-meter"><div class="setup-meter-fill" id="setup-mic-meter"></div></div>
+        <div class="setup-result" id="setup-mic-result" role="status"></div>
+        <p data-i18n="setup.s2.hint"></p>
+      </section>
+
+      <section class="setup-step" data-step="1">
+        <h3 id="setup-step-title-1" tabindex="-1" data-i18n="setup.s3.title">Virtual Microphone</h3>
+        <p data-i18n="setup.s3.desc"></p>
+        <div class="setup-result" id="setup-va-status"></div>
+        <div class="setup-row">
+          <button class="setup-btn" id="setup-va-install" type="button" data-i18n="setup.s3.install">Install VB-CABLE</button>
+          <button class="setup-btn" id="setup-va-rescan" type="button" data-i18n="setup.s3.rescan">Rescan</button>
+        </div>
+      </section>
+
+      <section class="setup-step" data-step="2">
+        <h3 id="setup-step-title-2" tabindex="-1" data-i18n="setup.s4.title">Output Test</h3>
+        <p data-i18n="setup.s4.desc"></p>
+        <div class="setup-row">
+          <label for="setup-out-select" data-i18n="ui.web.audio.ttsOutput">TTS output</label>
+          <select id="setup-out-select"></select>
+        </div>
+        <div class="setup-row">
+          <button class="setup-btn" id="setup-out-play" type="button" data-i18n="setup.s4.play">Play test voice</button>
+        </div>
+        <div class="setup-result" id="setup-out-result" role="status"></div>
+        <p class="setup-warn setup-hidden" id="setup-out-trouble" data-i18n="setup.s4.troubleshoot"></p>
+      </section>
+
+      <section class="setup-step" data-step="3">
+        <h3 id="setup-step-title-3" tabindex="-1" data-i18n="setup.s5.title">Discord Setup</h3>
+        <p data-i18n="setup.s5.desc"></p>
+        <div class="setup-row">
+          <button class="setup-btn" id="setup-discord-btn" type="button" data-i18n="setup.s5.discordBtn">Open Discord</button>
+        </div>
+        <p class="setup-ok" data-i18n="setup.s5.done"></p>
+      </section>
+
+      <div class="setup-foot">
+        <button class="setup-btn" id="setup-back-btn" type="button" data-i18n="setup.btn.back">Back</button>
+        <div class="right">
+          <button class="setup-btn" id="setup-later-btn" type="button" data-i18n="setup.btn.later">後で行う</button>
+          <button class="setup-btn" id="setup-skip-btn" type="button" data-i18n="setup.btn.skip">Skip</button>
+          <button class="setup-btn" id="setup-next-btn" type="button" data-i18n="setup.btn.next">Next</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="addon-language.js?v=20261105-language-profiles"></script>
+  <script src="app.js?v=20261105-language-profiles"></script>
+</body>
+</html>

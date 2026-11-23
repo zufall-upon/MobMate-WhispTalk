@@ -1,0 +1,41 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{A9533BBE-1BD8-4311-BA1B-B9339D8EE2BC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MobMate.Core", "src\MobMate.Core\MobMate.Core.csproj", "{D86F7646-25CA-4B45-BC38-2EAD382FE5FD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MobMate.Cli", "src\MobMate.Cli\MobMate.Cli.csproj", "{CD7B48B9-A619-46F6-8A0F-2C28ED27F0A2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MobMate.App.WebHost", "src\MobMate.App.WebHost\MobMate.App.WebHost.csproj", "{E6179630-451D-4D17-BA6D-0B7DFA1F20B2}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D86F7646-25CA-4B45-BC38-2EAD382FE5FD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D86F7646-25CA-4B45-BC38-2EAD382FE5FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D86F7646-25CA-4B45-BC38-2EAD382FE5FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D86F7646-25CA-4B45-BC38-2EAD382FE5FD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CD7B48B9-A619-46F6-8A0F-2C28ED27F0A2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CD7B48B9-A619-46F6-8A0F-2C28ED27F0A2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CD7B48B9-A619-46F6-8A0F-2C28ED27F0A2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CD7B48B9-A619-46F6-8A0F-2C28ED27F0A2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E6179630-451D-4D17-BA6D-0B7DFA1F20B2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E6179630-451D-4D17-BA6D-0B7DFA1F20B2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E6179630-451D-4D17-BA6D-0B7DFA1F20B2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E6179630-451D-4D17-BA6D-0B7DFA1F20B2}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{D86F7646-25CA-4B45-BC38-2EAD382FE5FD} = {A9533BBE-1BD8-4311-BA1B-B9339D8EE2BC}
+		{CD7B48B9-A619-46F6-8A0F-2C28ED27F0A2} = {A9533BBE-1BD8-4311-BA1B-B9339D8EE2BC}
+		{E6179630-451D-4D17-BA6D-0B7DFA1F20B2} = {A9533BBE-1BD8-4311-BA1B-B9339D8EE2BC}
+	EndGlobalSection
+EndGlobal
