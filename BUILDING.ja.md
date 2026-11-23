@@ -8,6 +8,11 @@
 外部資材のライセンス、対応版、入手性、ビルドや実行の成立は別途確認してください。
 以下だけで公式製品相当の配布物が完成するとは言えません。
 
+## この文書の読み方
+
+- 一般的な開発では、候補の内容と共通の前提を確認し、Windows または Linux の Debug 手順案へ進んでください。外部依存は別途確認が必要です。
+- テストと残課題には、外部 fixture、元環境、過去の予約記録に依存する確認も記載しています。これらは Fork の編集やビルド全般の必須条件ではなく、該当する確認を再現するときに参照してください。
+
 ## この候補の内容と不足
 
 - `src/` に .NET アプリ、`native/` に C++ bridge、`web/` に HTML/JS、
@@ -15,7 +20,7 @@
   `src/MobMate.App.WebHost/MobMate.App.WebHost.csproj` は、出所未確認の `app.ico` を
   除外したため `ApplicationIcon` 指定のみ削除しています。
 - Steamworks SDK/runtime (`libs_other/steam_api64.dll` 等)、モデルとモデル関連データ、
-  バイナリ、アイコン、画像、`src/MobMate.Core/Tts/OnsetAssets/*.wav`、
+  バイナリ、元配布のアイコンと画像、`src/MobMate.Core/Tts/OnsetAssets/*.wav`、
   `web/audio/asr-accepted-a.wav` は含みません。合成音や確認音等は元の動作と一致しません。
   `tools/generate-asr-acceptance-cues.py` は元の生成器ソースですが、音声の利用・再配布権限を
   この文書は保証しません。
@@ -171,6 +176,8 @@ CMake は sherpa が見つからない場合に警告しますが、bridge の�
 `addon_asr_ui_regression.js` の fixture は通常 `dotnet run` を呼びます。
 これらは欠落や権利・環境の確認後に対応する必要があり、テストを削除して PASS に見せていません。
 
+### 元環境や外部 fixture に依存する確認
+
 次の7ファイルの実ホスト参照は引数または環境変数にしました。テストの条件・
 期待値は変更しておらず、以下の前提を満たした実行は今回していません。
 
@@ -210,6 +217,8 @@ CMake は sherpa が見つからない場合に警告しますが、bridge の�
 この比較を再現できません。別 baseline を使った結果を元の回帰結果として扱わないでください。
 これらの入力変更後の実行・build・各 OS での成立は未検証です。
 外部 fixture の取得・同梱や、失敗を PASS に見せる変更はしていません。
+
+### 過去に観測した静的確認
 
 今回の静的な回帰確認では `whisper_turbo_ui_regression.js` は元候補・この候補とも exit 0 でした。
 `settings_interaction_regression.js` は元候補で exit 0、この候補では除外した

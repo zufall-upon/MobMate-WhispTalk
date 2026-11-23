@@ -2,15 +2,28 @@
 
 [English](README.md) | [日本語](README.ja.md) | [简体中文](README.zh-CN.md)
 
+MobMate WhispTalk は、会話での発話や聞き取りを支援する音声コミュニケーションアプリです。
+マイクの音声を認識し、認識結果や入力したテキストを音声合成して発話できます。
+ソースには翻訳、相手側の音声を聞き取る機能、字幕の機能も含まれています。
+利用できる機能は対応モデル、runtime、デバイス、設定に依存し、このソース候補の起動・実機動作は未検証です。
+
+[![Steam で MobMate WhispTalk を見る](assets/steam-banner.svg)](https://store.steampowered.com/app/4261090/)
+
 **公式の MobMate バイナリは [Steam](https://store.steampowered.com/app/4261090/) でのみ配布しています。**
 このソースから第三者が作ったビルドは公式版ではありません。改良・実験のための Fork を歓迎します。
 非公式配布では、利用者が公式版と区別できる名前・表示と、独自の問い合わせ先を用意してください。
 これはコードのライセンスに追加条件を課すものではなく、適用ライセンスに従った利用・改変・再配布を制限するものではありません。
 
+## 読み始める場所
+
+- [.NET Core](src/MobMate.Core/)、[Windows ホスト](src/MobMate.App.WebHost/Program.cs)、[Linux ホスト](src/MobMate.App.Linux/Program.cs)、[C++ bridge](native/mobmate_native_core/)、[Web UI](web/index.html) から読めます。
+- この候補のソース、UI、preset、テストは読んで編集できます。ビルドには外部依存が必要で、音声の確認や一部テストにはモデル、デバイス、fixture、元の記録も必要です。[BUILDING.md](BUILDING.ja.md) を参照してください。
+- 文書・翻訳、UI のアクセシビリティ、再現可能なテストの改善などを歓迎します。[CONTRIBUTING.md](CONTRIBUTING.ja.md) を参照してください。
+
 ## 現状
 
 このリポジトリにはソースコードを収録しています。固定元の Git 履歴、非公開配信用 workflow、
-Steamworks SDK/runtime、モデル、アイコン、画像、音声、配布用バイナリは含まれません。
+Steamworks SDK/runtime、モデル、元配布のアイコンと画像、音声、配布用バイナリは含まれません。
 このソース構成は静的な照合に限り、実ビルド・アプリ起動・CI・実機検証はしていません。
 [BUILDING.md](BUILDING.ja.md) に Windows/Linux の手順、外部依存と不足を記載しています。
 

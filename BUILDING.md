@@ -8,6 +8,11 @@ the application launched, CI run, or device testing performed with this candidat
 Separately check the licenses, compatible versions and availability of external materials, and whether building and running succeed.
 These steps alone cannot be said to produce a distribution equivalent to the official product.
 
+## How to use this guide
+
+- For general development, start with the candidate contents and common prerequisites, then the proposed Windows or Linux Debug steps. External dependencies still need separate checks.
+- The tests and remaining work section also records checks tied to external fixtures, original environments, or historical reservation records. These are not general requirements for editing or building a fork; consult them when reproducing the relevant checks.
+
 ## Contents and missing items in this candidate
 
 - `src/` contains the .NET application, `native/` the C++ bridge, `web/` HTML/JS,
@@ -15,7 +20,7 @@ These steps alone cannot be said to produce a distribution equivalent to the off
   Only the `ApplicationIcon` setting was removed from `src/MobMate.App.WebHost/MobMate.App.WebHost.csproj`
   because `app.ico`, whose provenance was unconfirmed, was excluded.
 - Steamworks SDK/runtime (such as `libs_other/steam_api64.dll`), models and model-related data,
-  binaries, icons, images, `src/MobMate.Core/Tts/OnsetAssets/*.wav`, and
+  binaries, the original distribution's icons and images, `src/MobMate.Core/Tts/OnsetAssets/*.wav`, and
   `web/audio/asr-accepted-a.wav` are not included. Synthesized sounds, confirmation sounds, and similar behavior will not match the original.
   `tools/generate-asr-acceptance-cues.py` is the original generator source, but this document does not guarantee
   rights to use or redistribute the audio.
@@ -172,6 +177,8 @@ and `MobMate.LanguageSmoke/OnsetRouterSmoke.cs` reads excluded audio.
 The fixture for `addon_asr_ui_regression.js` normally calls `dotnet run`.
 These need attention after checking missing items, rights, and the environment; tests have not been removed to make them appear to PASS.
 
+### Checks tied to the original environment or external fixtures
+
 Real host references in the following seven files were changed to arguments or environment variables. Test conditions
 and expected results were not changed, and no run meeting the following prerequisites has been performed this time.
 
@@ -210,6 +217,8 @@ The source snapshot's private history is not in the candidate, so the comparison
 baseline cannot be confirmed. Do not treat results using a different baseline as the original regression result.
 Execution, builds, and viability on each OS after these input changes are unverified.
 External fixtures were not acquired or included, and no changes were made to make failures appear to PASS.
+
+### Previously observed static checks
 
 In this static regression check, `whisper_turbo_ui_regression.js` exited 0 on both the original candidate and this candidate.
 `settings_interaction_regression.js` exited 0 on the original candidate but exited 1 on this candidate because the excluded

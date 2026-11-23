@@ -2,15 +2,28 @@
 
 [English](README.md) | [日本語](README.ja.md) | [简体中文](README.zh-CN.md)
 
+MobMate WhispTalk is a voice communication app for speaking and following conversations.
+It can recognize microphone speech and synthesize speech from recognized or typed text.
+The source also includes translation, incoming-audio hearing, and subtitle features.
+Availability depends on compatible models, runtimes, devices, and settings; this source candidate has not been run or device-tested.
+
+[![View MobMate WhispTalk on Steam](assets/steam-banner.svg)](https://store.steampowered.com/app/4261090/)
+
 **Official MobMate binaries are distributed only on [Steam](https://store.steampowered.com/app/4261090/).**
 Third-party builds made from this source are not official releases. Forks for improvements and experiments are welcome.
 For unofficial distributions, please use a name and presentation that users can distinguish from the official release, and provide your own contact information.
 This does not add conditions to the code license or restrict use, modification, or redistribution in accordance with the applicable licenses.
 
+## Where to start
+
+- Start with [.NET Core](src/MobMate.Core/), the [Windows host](src/MobMate.App.WebHost/Program.cs), the [Linux host](src/MobMate.App.Linux/Program.cs), the [C++ bridge](native/mobmate_native_core/), or the [Web UI](web/index.html).
+- The source, UI, presets, and tests can be read and edited here. Building needs external dependencies; voice checks and some tests also need models, devices, fixtures, or original records. See [BUILDING.md](BUILDING.md).
+- Documentation and localization, UI accessibility, and reproducible tests are examples of welcome improvements; see [CONTRIBUTING.md](CONTRIBUTING.md).
+
 ## Current status
 
 This repository contains source code. It does not contain the source snapshot's Git history, private distribution workflows,
-Steamworks SDK/runtime, models, icons, images, audio, or distribution binaries.
+Steamworks SDK/runtime, models, the original distribution's icons and images, audio, or distribution binaries.
 This source configuration has only been checked statically; no actual build, application launch, CI, or device testing has been performed.
 [BUILDING.md](BUILDING.md) describes the Windows/Linux procedures, external dependencies, and missing components.
 

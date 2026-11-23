@@ -7,6 +7,11 @@
 应用启动、CI 或设备验证。请另行确认外部材料的许可证、兼容版本、可获取性以及能否构建和运行。
 仅凭以下内容不能断言可以完成与官方产品等同的分发包。
 
+## 如何使用本文
+
+- 一般开发请先查看候选内容和共同前提，再阅读 Windows 或 Linux 的 Debug 拟议步骤。外部依赖仍需另行确认。
+- 测试与待解决事项还记录了依赖外部 fixture、原始环境或历史预约记录的检查。这些不是编辑或构建 Fork 的一般要求，仅在复现相应检查时参考。
+
 ## 此候选的内容与缺失项
 
 - `src/` 包含 .NET 应用，`native/` 包含 C++ bridge，`web/` 包含 HTML/JS，
@@ -14,7 +19,7 @@
   由于排除了来源未经确认的 `app.ico`，只从 `src/MobMate.App.WebHost/MobMate.App.WebHost.csproj`
   删除了 `ApplicationIcon` 设置。
 - 不包含 Steamworks SDK/runtime（如 `libs_other/steam_api64.dll`）、模型及模型相关数据、
-  二进制文件、图标、图像、`src/MobMate.Core/Tts/OnsetAssets/*.wav` 和
+  二进制文件、原始分发中的图标和图像、`src/MobMate.Core/Tts/OnsetAssets/*.wav` 和
   `web/audio/asr-accepted-a.wav`。合成音、确认音等行为与原版不一致。
   `tools/generate-asr-acceptance-cues.py` 是原有生成器的源代码，但本文不保证
   音频的使用和再分发权利。
@@ -170,6 +175,8 @@ cd ..
 `addon_asr_ui_regression.js` 的 fixture 通常调用 `dotnet run`。
 需要在确认缺失项、权利和环境后处理；没有通过删除测试来制造 PASS 假象。
 
+### 依赖原始环境或外部 fixture 的检查
+
 以下七个文件中对实际主机的引用已改为参数或环境变量。测试条件和期望值未变，
 此次也没有在满足以下前提的情况下执行。
 
@@ -209,6 +216,8 @@ cd ..
 请勿把使用其他 baseline 的结果当作原始回归结果。
 这些输入变更后的执行、build 及各 OS 上的可行性均未验证。
 没有获取或附带外部 fixture，也没有进行使失败看似 PASS 的修改。
+
+### 先前观察到的静态检查
 
 本次静态回归检查中，`whisper_turbo_ui_regression.js` 在原候选和此候选上均为 exit 0。
 `settings_interaction_regression.js` 在原候选为 exit 0，在此候选因排除的
